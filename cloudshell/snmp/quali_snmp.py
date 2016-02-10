@@ -166,6 +166,18 @@ class QualiSnmp(object):
 
         return oid_2_value
 
+    def get_table(self, snmp_module_name, table_name):
+        self._logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
+        try:
+            ret_value = self.walk((snmp_module_name, table_name))
+        except Exception as e:
+            self._logger.error(e.args)
+            ret_value = QualiMibTable()
+            if table_name in 'entPhysicalTable':
+                raise Exception('Cannot load entPhysicalTable. Autoload cannot continue')
+        self._logger.debug('\tDone.')
+        return ret_value
+
     def next(self, oid):
         """ Get next for a scalar.
 
