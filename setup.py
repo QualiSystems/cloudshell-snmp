@@ -11,11 +11,11 @@ with open('test_requirements.txt') as f_tests:
     required_for_tests = f_tests.read().splitlines()
 
 setup(
-    name='cloudshell-networking',
-    url='https://github.com/QualiSystems/cloudshell-networking',
+    name='cloudshell-snmp',
+    url='https://github.com/QualiSystems/cloudshell-snmp',
     author='QualiSystems',
     author_email='info@qualisystems.com',
-    packages=['cloudshell-networking'],
+    packages=['cloudshell-snmp'],
     install_requires=required,
     test_suite='tests',
     tests_require=required_for_tests,
