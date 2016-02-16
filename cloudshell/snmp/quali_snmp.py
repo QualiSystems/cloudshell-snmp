@@ -107,7 +107,7 @@ class QualiSnmp(object):
 
         self.target = cmdgen.UdpTransportTarget((ip, port))
         mib_builder.setMibSources(mib_path)
-        self._logger = logger if logger else qs_logger.getQSLogger(handler_name='QualiSnmp')
+        self._logger = logger if logger else qs_logger.get_qs_logger(handler_name='QualiSnmp')
         if v3_user:
             v3_user_data = v3_user.copy()
             if 'authProtocol' not in v3_user_data:
