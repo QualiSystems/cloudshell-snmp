@@ -22,21 +22,11 @@ mib_viewer = view.MibViewController(mib_builder)
 mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
 
 
-
-
-
 def filter_table(table, attribute, value):
     pass
 
-#Load default MIBs.
-#for mib in ('SNMPv2-MIB', 'SNMPv2-SMI', 'IF-MIB', 'ENTITY-MIB', 'MAU-MIB', 'IPV6-MIB',
-#            'CISCO-CDP-MIB', 'EtherLike-MIB', 'LLDP-MIB'):
-#    load_mib(mib)
-
-
 class QualiSnmpError(PySnmpError):
     pass
-
 
 class QualiMibTable(OrderedDict):
     """ Represents MIB table.
