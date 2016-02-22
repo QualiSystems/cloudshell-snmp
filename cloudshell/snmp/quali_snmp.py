@@ -14,29 +14,19 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
-from qualipy.common.libs import qs_logger
+from cloudshell.core.logger import qs_logger
 
 cmd_gen = cmdgen.CommandGenerator()
 mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
 mib_viewer = view.MibViewController(mib_builder)
-mibPath = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
-
-
-
+mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
 
 
 def filter_table(table, attribute, value):
     pass
 
-#Load default MIBs.
-#for mib in ('SNMPv2-MIB', 'SNMPv2-SMI', 'IF-MIB', 'ENTITY-MIB', 'MAU-MIB', 'IPV6-MIB',
-#            'CISCO-CDP-MIB', 'EtherLike-MIB', 'LLDP-MIB'):
-#    load_mib(mib)
-
-
 class QualiSnmpError(PySnmpError):
     pass
-
 
 class QualiMibTable(OrderedDict):
     """ Represents MIB table.
@@ -101,6 +91,7 @@ class QualiSnmp(object):
     :todo: use pysnmp.hlapi, do we really need to import symbols? see
         pysnmp.sourceforge.net/examples/hlapi/asyncore/sync/manager/cmdgen/table-operations.html
     """
+    mib_source_folder = ()
 
     var_binds = ()
     """ raw output from PySNMP command. """
@@ -115,8 +106,8 @@ class QualiSnmp(object):
         super(QualiSnmp, self).__init__()
 
         self.target = cmdgen.UdpTransportTarget((ip, port))
-        mib_builder.setMibSources(mibPath)
-        self._logger = logger if logger else qs_logger.getQSLogger(handler_name='QualiSnmp')
+        mib_builder.setMibSources(mib_path)
+        self._logger = logger if logger else qs_logger.get_qs_logger(handler_name='QualiSnmp')
         if v3_user:
             v3_user_data = v3_user.copy()
             if 'authProtocol' not in v3_user_data:
@@ -126,6 +117,11 @@ class QualiSnmp(object):
             self.security = UsmUserData(**v3_user_data)
         else:
             self.security = cmdgen.CommunityData(community)
+
+    def update_mib_sources(self, mib_folder_path):
+        builder.DirMibSource(mib_folder_path)
+        mib_sources = mib_builder.getMibSources() + (builder.DirMibSource(mib_folder_path),)
+        mib_builder.setMibSources(*mib_sources)
 
     def load_mib(self, mib):
         """ Load MIB
@@ -165,6 +161,18 @@ class QualiSnmp(object):
             oid_2_value[mibName] = var_bind[1].prettyPrint()
 
         return oid_2_value
+
+    def get_table(self, snmp_module_name, table_name):
+        self._logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
+        try:
+            ret_value = self.walk((snmp_module_name, table_name))
+        except Exception as e:
+            self._logger.error(e.args)
+            ret_value = QualiMibTable(table_name)
+            if table_name in 'entPhysicalTable':
+                raise Exception('Cannot load entPhysicalTable. Autoload cannot continue')
+        self._logger.debug('\tDone.')
+        return ret_value
 
     def next(self, oid):
         """ Get next for a scalar.
