@@ -12,14 +12,15 @@ with open('test_requirements.txt') as f_tests:
 
 setup(
     name='cloudshell-snmp',
-    url='https://github.com/QualiSystems/cloudshell-snmp',
+    url='http://www.qualisystems.com/',
     author='QualiSystems',
     author_email='info@qualisystems.com',
-    packages=['cloudshell-snmp'],
+    packages=find_packages(),
     install_requires=required,
     test_suite='tests',
     tests_require=required_for_tests,
     version=version_from_file,
-    description='QualiSystems Python package',
+    description='QualiSystems SNMP Python package',
     include_package_data = True
 )
+
