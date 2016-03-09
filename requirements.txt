@@ -1,4 +1,4 @@
 pysnmp
 pysmi
-pyasn
+pyasn1
 cloudshell-core<2.0
