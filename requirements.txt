@@ -1,2 +1,0 @@
-pysnmp
-cloudshell-core<2.0
