@@ -6,7 +6,6 @@ professionals. Thus the operations and terminology are not always by the book bu
 needs of Quali SNMP users.
 """
 import os
-
 from collections import OrderedDict
 
 from pysnmp.hlapi import UsmUserData, usmHMACSHAAuthProtocol, usmDESPrivProtocol
@@ -14,6 +13,7 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
+
 from cloudshell.core.logger import qs_logger
 
 cmd_gen = cmdgen.CommandGenerator()
@@ -161,6 +161,16 @@ class QualiSnmp(object):
             oid_2_value[mibName] = var_bind[1].prettyPrint()
 
         return oid_2_value
+
+    def get_value(self, snmp_module_name, command_name, index):
+        self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(command_name, index, snmp_module_name))
+        try:
+            return_value = self.get((snmp_module_name, command_name, index)).values()[0]
+        except Exception as e:
+            self._logger.error(e.args)
+            return_value = ''
+        self._logger.debug('\tDone.')
+        return return_value
 
     def get_table(self, snmp_module_name, table_name):
         self._logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
