@@ -1,2 +1,2 @@
-cloudshell-core
+cloudshell-core<2.0
 pysnmp

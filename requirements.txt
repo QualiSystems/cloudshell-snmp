@@ -1,5 +1,0 @@
-pysnmp
-pysmi
-pyasn1
-ply
-cloudshell-core<2.0
