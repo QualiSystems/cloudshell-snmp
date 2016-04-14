@@ -1,6 +1,6 @@
 from cloudshell.snmp.quali_snmp import QualiSnmp
 from pysnmp.hlapi import usmHMACSHAAuthProtocol, usmDESPrivProtocol
-from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper
+from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper, get_resource_address
 
 
 
@@ -10,7 +10,7 @@ SNMP_HANDLER.kwargs = {'SNMP Version': get_attribute_by_name_wrapper('SNMP Versi
                        'SNMP Password': get_attribute_by_name_wrapper('SNMP Password'),
                        'SNMP Read Community': get_attribute_by_name_wrapper('SNMP Read Community'),
                        'SNMP Private key': get_attribute_by_name_wrapper('SNMP Private Key'),
-                       'ResourceAddress': get_attribute_by_name_wrapper('host')}
+                       'ResourceAddress': get_resource_address}
 SNMP_DEFAULT_PORT = 161
 SNMP_PRIV_PROTOCOL = usmDESPrivProtocol
 SNMP_AUTH_PROTOCOL = usmHMACSHAAuthProtocol

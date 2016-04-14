@@ -119,6 +119,8 @@ class QualiSnmp(object):
         v3_private_key = get_attribute_by_name('SNMP V3 Private Key')
         snmp_version = get_attribute_by_name('SNMP Version')
         community = get_attribute_by_name('SNMP Read Community')
+        self._logger.info('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
+            ip, community, v3_user, v3_password, v3_private_key))
         if '3' in snmp_version:
             self.security = UsmUserData(userName=v3_user,
                                         authKey=v3_password,
