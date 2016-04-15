@@ -14,7 +14,7 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
-from cloudshell.shell.core.context.context_utils import get_attribute_by_name
+from cloudshell.shell.core.context.context_utils import get_attribute_by_name, get_resource_address
 from cloudshell.core.logger import qs_logger
 
 #cmd_gen = cmdgen.CommandGenerator()
@@ -111,7 +111,7 @@ class QualiSnmp(object):
     @inject.params(logger='logger', config='config')
     def initialize_snmp(self, logger=None, config=None):
         logger.info('QualiSnmp Creating SNMP Handler')
-        ip = get_attribute_by_name('ResourceAddress')
+        ip = get_resource_address()
         port = config.SNMP_DEFAULT_PORT
         self.target = cmdgen.UdpTransportTarget((ip, port))
         v3_user = get_attribute_by_name('SNMP V3 User')
