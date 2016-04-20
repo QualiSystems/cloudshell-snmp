@@ -15,9 +15,7 @@ from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
 from cloudshell.shell.core.context.context_utils import get_attribute_by_name, get_resource_address
-from cloudshell.core.logger import qs_logger
-
-#cmd_gen = cmdgen.CommandGenerator()
+import cloudshell.configuration.cloudshell_snmp_configuration as config
 
 
 
@@ -91,8 +89,8 @@ class QualiSnmp(object):
 
     var_binds = ()
     """ raw output from PySNMP command. """
-    @inject.params(logger='logger', context='context', config='config')
-    def __init__(self, context=None, logger=None, config=None):
+    @inject.params(logger='logger', context='context')
+    def __init__(self, context=None, logger=None):
         """ Initialize SNMP environment .
         :param ip: device IP.
         :param port: device SNMP port.
@@ -108,8 +106,8 @@ class QualiSnmp(object):
         self.initialize_snmp()
         self.mib_builder.setMibSources(self.mib_path)
 
-    @inject.params(logger='logger', config='config')
-    def initialize_snmp(self, logger=None, config=None):
+    @inject.params(logger='logger')
+    def initialize_snmp(self, logger=None):
         logger.info('QualiSnmp Creating SNMP Handler')
         ip = get_resource_address()
         port = config.SNMP_DEFAULT_PORT
