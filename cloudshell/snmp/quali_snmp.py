@@ -9,15 +9,23 @@ import os
 import inject
 from collections import OrderedDict
 
-from pysnmp.hlapi import UsmUserData
+from pysnmp.hlapi import UsmUserData, usmHMACSHAAuthProtocol, usmDESPrivProtocol
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
-from cloudshell.shell.core.context.context_utils import get_attribute_by_name, get_resource_address
 import cloudshell.configuration.cloudshell_snmp_configuration as config
 
+from cloudshell.core.logger import qs_logger
 
+cmd_gen = cmdgen.CommandGenerator()
+mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
+mib_viewer = view.MibViewController(mib_builder)
+mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
+
+
+def filter_table(table, attribute, value):
+    pass
 
 class QualiSnmpError(PySnmpError):
     pass
@@ -89,48 +97,44 @@ class QualiSnmp(object):
 
     var_binds = ()
     """ raw output from PySNMP command. """
-    @inject.params(logger='logger', context='context')
-    def __init__(self, context=None, logger=None):
+    @inject.params(logger='logger')
+    def __init__(self, ip, logger=None, port=161, snmp_version='', snmp_community='', snmp_user='', snmp_password='',
+                 snmp_private_key='', auth_protocol=usmHMACSHAAuthProtocol, private_key_protocol=usmDESPrivProtocol):
         """ Initialize SNMP environment .
         :param ip: device IP.
         :param port: device SNMP port.
         :param community: device community string.
         """
-        super(QualiSnmp, self).__init__()
         self.cmd_gen = cmdgen.CommandGenerator()
         self.mib_builder = self.cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
         self.mib_viewer = view.MibViewController(self.mib_builder)
         self.mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
         self._logger = logger
         self.target = None
-        self.initialize_snmp()
+        self.security = None
+        self.initialize_snmp(ip, port, snmp_version, snmp_community, snmp_user, snmp_password,
+                             snmp_private_key, auth_protocol, private_key_protocol)
         self.mib_builder.setMibSources(self.mib_path)
 
-    @inject.params(logger='logger')
-    def initialize_snmp(self, logger=None):
-        logger.info('QualiSnmp Creating SNMP Handler')
-        ip = get_resource_address()
-        port = config.SNMP_DEFAULT_PORT
-        self.target = cmdgen.UdpTransportTarget((ip, port))
-        v3_user = get_attribute_by_name('SNMP V3 User')
-        v3_password = get_attribute_by_name('SNMP V3 Password')
-        v3_private_key = get_attribute_by_name('SNMP V3 Private Key')
-        snmp_version = get_attribute_by_name('SNMP Version')
-        community = get_attribute_by_name('SNMP Read Community')
+    def initialize_snmp(self, ip_address, port, snmp_version, snmp_community, snmp_user, snmp_password,
+                        snmp_private_key, auth_protocol, private_key_protocol):
+
+        self._logger.info('QualiSnmp Creating SNMP Handler')
+        self.target = cmdgen.UdpTransportTarget((ip_address, port))
         self._logger.info('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
-            ip, community, v3_user, v3_password, v3_private_key))
+            ip_address, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if '3' in snmp_version:
-            self.security = UsmUserData(userName=v3_user,
-                                        authKey=v3_password,
-                                        privKey=v3_private_key,
-                                        authProtocol=config.SNMP_AUTH_PROTOCOL,
-                                        privProtocol=config.SNMP_PRIV_PROTOCOL)
-            logger.info('Snmp v3 handler created')
+            self.security = UsmUserData(userName=snmp_user,
+                                        authKey=snmp_password,
+                                        privKey=snmp_private_key,
+                                        authProtocol=auth_protocol,
+                                        privProtocol=private_key_protocol)
+            self._logger.info('Snmp v3 handler created')
         else:
-            if not community or community == '':
+            if not snmp_community or snmp_community == '':
                 raise Exception('QualiSnmp', 'Snmp parameters is empty or invalid')
-            self.security = cmdgen.CommunityData(community)
-            logger.info('Snmp v2 handler created')
+            self.security = cmdgen.CommunityData(snmp_community)
+            self._logger.info('Snmp v2 handler created')
         self._test_snmp_agent()
 
     def _test_snmp_agent(self):
@@ -188,10 +192,10 @@ class QualiSnmp(object):
 
         return oid_2_value
 
-    def get_value(self, snmp_mib_name, command_name, index, type='str'):
-        self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\''.format(command_name, index, snmp_mib_name))
+    def get_property_value(self, snmp_module_name, property_name, index, return_type='str'):
+        self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
         try:
-            return_value = self.get((snmp_mib_name, command_name, index)).values()[0]
+            return_value = self.get((snmp_module_name, property_name, index)).values()[0]
         except Exception as e:
             self._logger.error(e.args)
             if type == 'int':
@@ -205,7 +209,7 @@ class QualiSnmp(object):
         result = QualiMibTable(snmp_mib_name)
         result[index] = {}
         for command_key, command_type in command_map.iteritems():
-            result[index][command_key] = self.get_value(snmp_mib_name, command_key, index, command_type)
+            result[index][command_key] = self.get_property_value(snmp_mib_name, command_key, index, command_type)
         return result
 
     # def get_tables(self, snmp_module_name, table_names=[]):
