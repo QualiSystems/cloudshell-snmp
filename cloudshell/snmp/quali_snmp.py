@@ -14,18 +14,13 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
-import cloudshell.configuration.cloudshell_snmp_configuration as config
 
-from cloudshell.core.logger import qs_logger
 
 cmd_gen = cmdgen.CommandGenerator()
 mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
 mib_viewer = view.MibViewController(mib_builder)
 mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
 
-
-def filter_table(table, attribute, value):
-    pass
 
 class QualiSnmpError(PySnmpError):
     pass
@@ -142,7 +137,7 @@ class QualiSnmp(object):
         Validate snmp agent and connectivity attributes, raise Exception if snmp agent is invalid
         """
         try:
-            self.get(('SNMPv2-MIB', 'sysName', '0'))
+            self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
         except Exception as e:
             self._logger.error('Snmp agent validation failed')
             self._logger.error(e.message)
@@ -153,12 +148,13 @@ class QualiSnmp(object):
         mib_sources = self.mib_builder.getMibSources() + (builder.DirMibSource(mib_folder_path),)
         self.mib_builder.setMibSources(*mib_sources)
 
-    def load_mib(self, mib):
+    def load_mib(self, mib_list):
         """ Load MIB
 
-        :param mib: MIB name (without any suffix).
+        :param mib_list: List of MIB names (without any suffix).
         """
-        self.mib_builder.loadModules(mib)
+        for mib in mib_list:
+            self.mib_builder.loadModules(mib)
 
     def get(self, *oids):
         """ Get/Bulk get operation for scalars.
