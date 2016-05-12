@@ -188,24 +188,26 @@ class QualiSnmp(object):
 
         return oid_2_value
 
-    def get_property_value(self, snmp_module_name, property_name, index, return_type='str'):
+    def get_property(self, snmp_module_name, property_name, index, return_type='str'):
         self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
         try:
             return_value = self.get((snmp_module_name, property_name, index)).values()[0]
+            if 'int' in return_type:
+                int(return_value)
         except Exception as e:
             self._logger.error(e.args)
-            if type == 'int':
+            if return_type == 'int':
                 return_value = 0
             else:
                 return_value = ''
         self._logger.debug('\tDone.')
         return return_value
 
-    def get_bulk_values(self, snmp_mib_name, index, command_map={}):
+    def get_properties(self, snmp_mib_name, index, command_map={}):
         result = QualiMibTable(snmp_mib_name)
         result[index] = {}
         for command_key, command_type in command_map.iteritems():
-            result[index][command_key] = self.get_property_value(snmp_mib_name, command_key, index, command_type)
+            result[index][command_key] = self.get_property(snmp_mib_name, command_key, index, command_type)
         return result
 
     # def get_tables(self, snmp_module_name, table_names=[]):
