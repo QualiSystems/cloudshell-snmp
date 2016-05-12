@@ -166,6 +166,8 @@ class QualiSnmp(object):
         self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(command_name, index, snmp_module_name))
         try:
             return_value = self.get((snmp_module_name, command_name, index)).values()[0]
+            if 'int' in return_type:
+                int(return_value)
         except Exception as e:
             self._logger.error(e.args)
             if return_type == 'int':
