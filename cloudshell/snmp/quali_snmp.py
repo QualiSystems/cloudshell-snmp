@@ -39,6 +39,7 @@ class QualiMibTable(OrderedDict):
 
         :param name: MIB table name.
         """
+
         super(QualiMibTable, self).__init__(*args, **kwargs)
         self._name = name
         self._prefix = name[:-len('Table')]
@@ -48,6 +49,7 @@ class QualiMibTable(OrderedDict):
         :param indexes: list of requested indexes.
         :return: a partial table containing only the requested rows.
         """
+
         return QualiMibTable(self._name, OrderedDict((i, v) for i, v in self.items() if
                                                      i in indexes))
 
@@ -56,6 +58,7 @@ class QualiMibTable(OrderedDict):
         :param names: list of requested columns names.
         :return: a partial table containing only the requested columns.
         """
+
         names = [self._prefix + n for n in names]
         return QualiMibTable(self._name, OrderedDict((i, {n: v for n, v in values.items() if
                                                           n in names}) for
@@ -68,6 +71,7 @@ class QualiMibTable(OrderedDict):
         :return: a partial table containing only the rows that has one of the requested values in
             the requested column.
         """
+
         name = self._prefix + name
         return QualiMibTable(self._name, OrderedDict((i, _values) for i, _values in self.items() if
                                                      _values[name] in values))
@@ -77,6 +81,7 @@ class QualiMibTable(OrderedDict):
         :param name: column name.
         :return: the same table sorted by the value in the requested column.
         """
+
         column = self.get_columns(name)
         name = self._prefix + name
         return QualiMibTable(self._name, sorted(column.items(), key=lambda t: int(t[1][name])))
@@ -88,6 +93,7 @@ class QualiSnmp(object):
     :todo: use pysnmp.hlapi, do we really need to import symbols? see
         pysnmp.sourceforge.net/examples/hlapi/asyncore/sync/manager/cmdgen/table-operations.html
     """
+
     mib_source_folder = ()
 
     var_binds = ()
@@ -96,10 +102,20 @@ class QualiSnmp(object):
     def __init__(self, ip, logger=None, port=161, snmp_version='', snmp_community='', snmp_user='', snmp_password='',
                  snmp_private_key='', auth_protocol=usmHMACSHAAuthProtocol, private_key_protocol=usmDESPrivProtocol):
         """ Initialize SNMP environment .
-        :param ip: device IP.
-        :param port: device SNMP port.
-        :param community: device community string.
+        :param logger: QSLogger object
+        :param ip: target device ip address
+        :param port: snmp port
+        :param snmp_version: snmp version, i.e. v2c, v3, etc.
+        :param snmp_community: snmp community name, used to instantiate snmp agent version 2
+        :param snmp_user: snmp user name, used to instantiate snmp agent version 3
+        :param snmp_password: snmp password, used to instantiate snmp agent version 3
+        :param snmp_private_key: snmp private key, used to instantiate snmp agent version 3
+        :param auth_protocol: authentication protocol, used to instantiate snmp agent version 3,
+                i.e. usmNoAuthProtocol, usmHMACMD5AuthProtocol, etc. objects
+        :param private_key_protocol: private key protocol, used to instantiate snmp agent version 3,
+                i.e. usmNoPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, etc. objects
         """
+
         self.cmd_gen = cmdgen.CommandGenerator()
         self.mib_builder = self.cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
         self.mib_viewer = view.MibViewController(self.mib_builder)
@@ -113,6 +129,20 @@ class QualiSnmp(object):
 
     def initialize_snmp(self, ip_address, port, snmp_version, snmp_community, snmp_user, snmp_password,
                         snmp_private_key, auth_protocol, private_key_protocol):
+        """Create snmp, using provided version user details or community name
+
+        :param ip_address: target device ip address
+        :param port: snmp port
+        :param snmp_version: snmp version, i.e. v2c, v3, etc.
+        :param snmp_community: snmp community name, used to instantiate snmp agent version 2
+        :param snmp_user: snmp user name, used to instantiate snmp agent version 3
+        :param snmp_password: snmp password, used to instantiate snmp agent version 3
+        :param snmp_private_key: snmp private key, used to instantiate snmp agent version 3
+        :param auth_protocol: authentication protocol, used to instantiate snmp agent version 3,
+                i.e. usmNoAuthProtocol, usmHMACMD5AuthProtocol, etc. objects
+        :param private_key_protocol: private key protocol, used to instantiate snmp agent version 3,
+                i.e. usmNoPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, etc. objects
+        """
 
         self._logger.info('QualiSnmp Creating SNMP Handler')
         self.target = cmdgen.UdpTransportTarget((ip_address, port))
@@ -136,6 +166,7 @@ class QualiSnmp(object):
         """
         Validate snmp agent and connectivity attributes, raise Exception if snmp agent is invalid
         """
+
         try:
             self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
         except Exception as e:
@@ -144,15 +175,21 @@ class QualiSnmp(object):
             raise Exception('Snmp attributes or host IP is not valid\n{0}'.format(e.message))
 
     def update_mib_sources(self, mib_folder_path):
+        """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
+
+        :param mib_folder_path: string path
+        """
+
         builder.DirMibSource(mib_folder_path)
         mib_sources = self.mib_builder.getMibSources() + (builder.DirMibSource(mib_folder_path),)
         self.mib_builder.setMibSources(*mib_sources)
 
     def load_mib(self, mib_list):
-        """ Load MIB
+        """ Load all MIBs provided in incoming mib_list one by one
 
-        :param mib_list: List of MIB names (without any suffix).
+        :param mib_list: List of MIB names, for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
+
         for mib in mib_list:
             self.mib_builder.loadModules(mib)
 
@@ -188,37 +225,53 @@ class QualiSnmp(object):
 
         return oid_2_value
 
-    def get_property_value(self, snmp_module_name, property_name, index, return_type='str'):
+    def get_property(self, snmp_module_name, property_name, index, return_type='str'):
+        """ Get SNMP value from specified MIB and property name.
+
+        :param snmp_module_name: MIB name, like 'IF-MIB'
+        :param property_name: map of required property and it's default type, i.e. 'ifDescr'
+        :param index: index of the required element, i.e. '1'
+        :param return_type: type of the output we expect to get in response, i.e. 'int'
+        :return: string
+        """
+
         self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
         try:
             return_value = self.get((snmp_module_name, property_name, index)).values()[0]
+            if 'int' in return_type:
+                int(return_value)
         except Exception as e:
             self._logger.error(e.args)
-            if type == 'int':
+            if return_type == 'int':
                 return_value = 0
             else:
                 return_value = ''
         self._logger.debug('\tDone.')
         return return_value
 
-    def get_bulk_values(self, snmp_mib_name, index, command_map={}):
+    def get_properties(self, snmp_mib_name, index, properties_map):
+        """ Get SNMP table from specified MIB and map of properties.
+
+        :param snmp_mib_name: MIB name 'IF-MIB'
+        :param index: index of the required element '1'
+        :param properties_map: map of required property and it's default type, i.e. {'ifDescr': 'str', 'ifMtu': 'int'}
+        :return: QualiMibTable
+        """
+
         result = QualiMibTable(snmp_mib_name)
         result[index] = {}
-        for command_key, command_type in command_map.iteritems():
-            result[index][command_key] = self.get_property_value(snmp_mib_name, command_key, index, command_type)
+        for command_key, command_type in properties_map.iteritems():
+            result[index][command_key] = self.get_property(snmp_mib_name, command_key, index, command_type)
         return result
 
-    # def get_tables(self, snmp_module_name, table_names=[]):
-    #     self._logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
-    #     try:
-    #         ret_value = self.walk((snmp_module_name, table_name))
-    #     except Exception as e:
-    #         self._logger.error(e.args)
-    #         ret_value = QualiMibTable(table_name)
-    #     self._logger.debug('\tDone.')
-    #     return ret_value
-
     def get_table(self, snmp_module_name, table_name):
+        """ Get SNMP table from specified MIB and table name.
+
+        :param snmp_module_name: MIB name
+        :param table_name: table name
+        :return: QualiMibTable
+        """
+
         self._logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
         try:
             ret_value = self.walk((snmp_module_name, table_name))
@@ -282,6 +335,12 @@ class QualiSnmp(object):
     #
 
     def _command(self, cmd, *oids):
+        """ Execute provided command with provided oids
+
+        :param cmd: command to execute, i.e get
+        :param oids: request oids, '1.3.6.1.2.1.1.2'
+        """
+        
         error_indication, error_status, error_index, self.var_binds = cmd(self.security,
                                                                           self.target,
                                                                           *oids)
