@@ -1,8 +1,6 @@
 import cloudshell.configuration.cloudshell_snmp_configuration as config
+from cloudshell.configuration.cloudshell_snmp_binding_keys import SNMP_HANDLER
 import inject
-
-"""SNMP HANDLER binding key"""
-SNMP_HANDLER = 'snmp_handler'
 
 
 def bindings(binder):
