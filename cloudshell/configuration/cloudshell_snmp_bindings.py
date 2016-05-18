@@ -1,6 +1,9 @@
 import cloudshell.configuration.cloudshell_snmp_configuration as config
 import inject
 
+"""SNMP HANDLER binding key"""
+SNMP_HANDLER = 'snmp_handler'
+
 
 def bindings(binder):
     """
@@ -9,8 +12,7 @@ def bindings(binder):
     :type binder: inject.Binder
     """
 
-    _SNMP_HANDLER_NAME = 'snmp_handler'
     try:
-        binder.bind_to_provider(_SNMP_HANDLER_NAME, config.SNMP_HANDLER)
+        binder.bind_to_provider(SNMP_HANDLER, config.SNMP_HANDLER)
     except inject.InjectorException:
         pass

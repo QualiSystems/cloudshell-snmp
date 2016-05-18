@@ -1,5 +1,5 @@
 from cloudshell.snmp.quali_snmp import QualiSnmp
-from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper, get_resource_address
+from cloudshell.shell.core.context_utils import get_attribute_by_name_wrapper, get_resource_address
 
 QUALISNMP_INIT_PARAMS = {'ip': get_resource_address,
                          'snmp_version': get_attribute_by_name_wrapper('SNMP Version'),
