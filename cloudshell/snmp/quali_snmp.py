@@ -340,7 +340,7 @@ class QualiSnmp(object):
         :param cmd: command to execute, i.e get
         :param oids: request oids, '1.3.6.1.2.1.1.2'
         """
-        
+
         error_indication, error_status, error_index, self.var_binds = cmd(self.security,
                                                                           self.target,
                                                                           *oids)
