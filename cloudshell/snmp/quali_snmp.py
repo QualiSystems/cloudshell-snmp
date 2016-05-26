@@ -190,6 +190,9 @@ class QualiSnmp(object):
         :param mib_list: List of MIB names, for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
 
+        if isinstance(mib_list, str):
+            mib_list = [mib_list]
+
         for mib in mib_list:
             self.mib_builder.loadModules(mib)
 
