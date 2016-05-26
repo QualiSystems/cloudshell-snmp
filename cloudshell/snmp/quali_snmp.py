@@ -190,6 +190,9 @@ class QualiSnmp(object):
         :param mib_list: List of MIB names, for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
 
+        if isinstance(mib_list, str):
+            mib_list = [mib_list]
+
         for mib in mib_list:
             self.mib_builder.loadModules(mib)
 
@@ -340,7 +343,7 @@ class QualiSnmp(object):
         :param cmd: command to execute, i.e get
         :param oids: request oids, '1.3.6.1.2.1.1.2'
         """
-        
+
         error_indication, error_status, error_index, self.var_binds = cmd(self.security,
                                                                           self.target,
                                                                           *oids)
