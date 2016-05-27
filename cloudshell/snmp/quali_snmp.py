@@ -240,9 +240,9 @@ class QualiSnmp(object):
 
         self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
         try:
-            return_value = self.get((snmp_module_name, property_name, index)).values()[0]
+            return_value = self.get((snmp_module_name, property_name, index)).values()[0].strip(' \t\n\r')
             if 'int' in return_type:
-                int(return_value)
+                return_value = int(return_value)
         except Exception as e:
             self._logger.error(e.args)
             if return_type == 'int':
