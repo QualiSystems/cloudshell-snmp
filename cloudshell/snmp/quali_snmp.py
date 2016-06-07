@@ -171,7 +171,7 @@ class QualiSnmp(object):
         """
 
         result = None
-        exception_message = 'Snmp connection test failed, check host IP and snmp attributes'
+        exception_message = 'Snmp connection failed, check host IP and snmp attributes'
         for retry in range(retries_count):
             try:
                 result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
