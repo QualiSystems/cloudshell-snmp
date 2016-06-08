@@ -149,8 +149,8 @@ class QualiSnmp(object):
         if ':' in ip_address:
             ip = ip_address.split(':')[0]
         self.target = cmdgen.UdpTransportTarget((ip, port))
-        self._logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
-            ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
+        # self._logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
+        #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if '3' in snmp_version:
             self.security = UsmUserData(userName=snmp_user,
                                         authKey=snmp_password,
