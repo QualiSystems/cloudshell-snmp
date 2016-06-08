@@ -14,7 +14,7 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
-
+import time
 
 cmd_gen = cmdgen.CommandGenerator()
 mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
@@ -145,9 +145,12 @@ class QualiSnmp(object):
         """
 
         self._logger.info('QualiSnmp Creating SNMP Handler')
-        self.target = cmdgen.UdpTransportTarget((ip_address, port))
-        self._logger.info('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
-            ip_address, snmp_community, snmp_user, snmp_password, snmp_private_key))
+        ip = ip_address
+        if ':' in ip_address:
+            ip = ip_address.split(':')[0]
+        self.target = cmdgen.UdpTransportTarget((ip, port))
+        # self._logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
+        #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if '3' in snmp_version:
             self.security = UsmUserData(userName=snmp_user,
                                         authKey=snmp_password,
@@ -162,17 +165,24 @@ class QualiSnmp(object):
             self._logger.info('Snmp v2 handler created')
         self._test_snmp_agent()
 
-    def _test_snmp_agent(self):
+    def _test_snmp_agent(self, retries_count=3, sleep_length=1):
         """
         Validate snmp agent and connectivity attributes, raise Exception if snmp agent is invalid
         """
 
-        try:
-            self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
-        except Exception as e:
-            self._logger.error('Snmp agent validation failed')
-            self._logger.error(e.message)
-            raise Exception('Snmp attributes or host IP is not valid\n{0}'.format(e.message))
+        result = None
+        exception_message = 'Snmp connection failed, check host IP and snmp attributes'
+        for retry in range(retries_count):
+            try:
+                result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
+            except Exception as e:
+                self._logger.error('Snmp agent validation failed')
+                self._logger.error(e.message)
+                exception_message = e.message
+                time.sleep(sleep_length)
+
+        if not result:
+            raise Exception('Snmp attributes or host IP is not valid\n{0}'.format(exception_message))
 
     def update_mib_sources(self, mib_folder_path):
         """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
