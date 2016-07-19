@@ -128,7 +128,7 @@ class QualiSnmp(object):
         self.mib_builder.setMibSources(self.mib_path)
 
     def initialize_snmp(self, ip_address, port, snmp_version, snmp_community, snmp_user, snmp_password,
-                        snmp_private_key, auth_protocol, private_key_protocol):
+                        snmp_private_key, auth_protocol, private_key_protocol, timeout=10, retires=1):
         """Create snmp, using provided version user details or community name
 
         :param ip_address: target device ip address
@@ -148,7 +148,7 @@ class QualiSnmp(object):
         ip = ip_address
         if ':' in ip_address:
             ip = ip_address.split(':')[0]
-        self.target = cmdgen.UdpTransportTarget((ip, port))
+        self.target = cmdgen.UdpTransportTarget((ip, port), timeout=timeout, retries=retires)
         # self._logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
         #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if '3' in snmp_version:
@@ -177,6 +177,7 @@ class QualiSnmp(object):
                 result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
             except Exception as e:
                 self._logger.error('Snmp agent validation failed')
+                self.target
                 self._logger.error(e.message)
                 exception_message = e.message
                 time.sleep(sleep_length)
