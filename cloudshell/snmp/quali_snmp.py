@@ -25,7 +25,9 @@ mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__f
 class QualiSnmpError(PySnmpError):
     pass
 
-class QualiMibTable(OrderedDict):
+
+# Original class QualiMibTable(OrderedDict). Inheritance was changed because serialization does not work correctly.
+class QualiMibTable(dict):
     """ Represents MIB table.
 
     Note that this class inherits from OrderedDict so all dict operations are supported.
