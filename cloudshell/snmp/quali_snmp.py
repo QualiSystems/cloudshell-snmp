@@ -251,15 +251,21 @@ class QualiSnmp(object):
 
         :param snmp_module_name: MIB name, like 'IF-MIB'
         :param property_name: map of required property and it's default type, i.e. 'ifDescr'
-        :param index: index of the required element, i.e. '1'
+        :param index: index of the required element, i.e. '1' or '1.2.3.0'
         :param return_type: type of the output we expect to get in response, i.e. 'int'
         :return: string
         """
 
         self.logger.debug(
             '\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
+
+        if isinstance(index, str):
+            index_list = index.split('.')
+        else:
+            index_list = [index]
         try:
-            return_value = self.get((snmp_module_name, property_name, index)).values()[0].strip(' \t\n\r')
+            snmp_request = (snmp_module_name, property_name)+tuple(index_list)
+            return_value = self.get(snmp_request).values()[0].strip(' \t\n\r')
             if 'int' in return_type:
                 return_value = int(return_value)
         except Exception as e:
