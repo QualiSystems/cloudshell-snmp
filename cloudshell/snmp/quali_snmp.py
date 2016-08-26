@@ -7,9 +7,10 @@ needs of Quali SNMP users.
 """
 from collections import OrderedDict
 import time
+import re
+
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 import inject
-
 import os
 from pysnmp.hlapi import UsmUserData, usmHMACSHAAuthProtocol, usmDESPrivProtocol
 from pysnmp.entity.rfc3413.oneliner import cmdgen
@@ -105,7 +106,7 @@ class QualiSnmp(object):
 
     def __init__(self, ip, port=161, snmp_version='', snmp_community='', snmp_user='', snmp_password='',
                  snmp_private_key='', auth_protocol=usmHMACSHAAuthProtocol, private_key_protocol=usmDESPrivProtocol,
-                 logger=None):
+                 logger=None, snmp_errors=list()):
         """ Initialize SNMP environment .
         :param ip: target device ip address
         :param port: snmp port
@@ -127,6 +128,7 @@ class QualiSnmp(object):
         self._logger = logger
         self.target = None
         self.security = None
+        self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_errors}
         self.initialize_snmp(ip, port, snmp_version, snmp_community, snmp_user, snmp_password,
                              snmp_private_key, auth_protocol, private_key_protocol)
         self.mib_builder.setMibSources(self.mib_path)
@@ -242,9 +244,17 @@ class QualiSnmp(object):
         oid_2_value = OrderedDict()
         for var_bind in self.var_binds:
             modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
-            oid_2_value[mibName] = var_bind[1].prettyPrint()
+            oid_value = var_bind[1].prettyPrint()
+            self._check_result_for_errors(oid_value)
+            oid_2_value[mibName] = oid_value
 
         return oid_2_value
+
+    def _check_result_for_errors(self, value):
+        for pattern, compiled_pattern in self._snmp_errors.iteritems():
+            if re.search(compiled_pattern, value):
+                self.logger.debug('Snmp value contain errors, {}'.format(pattern))
+                raise Exception(self.__class__.__name__, 'Snmp value contain errors, {}'.format(pattern))
 
     def get_property(self, snmp_module_name, property_name, index, return_type='str'):
         """ Get SNMP value from specified MIB and property name.
@@ -264,7 +274,7 @@ class QualiSnmp(object):
         else:
             index_list = [index]
         try:
-            snmp_request = (snmp_module_name, property_name)+tuple(index_list)
+            snmp_request = (snmp_module_name, property_name) + tuple(index_list)
             return_value = self.get(snmp_request).values()[0].strip(' \t\n\r')
             if 'int' in return_type:
                 return_value = int(return_value)
