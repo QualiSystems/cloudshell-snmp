@@ -5,16 +5,18 @@ This package assumes that its users are familiar with SNMP basics but are not ne
 professionals. Thus the operations and terminology are not always by the book but reflects the
 needs of Quali SNMP users.
 """
-import os
-import inject
 from collections import OrderedDict
+import time
+import re
 
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
+import inject
+import os
 from pysnmp.hlapi import UsmUserData, usmHMACSHAAuthProtocol, usmDESPrivProtocol
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
-import time
 
 cmd_gen = cmdgen.CommandGenerator()
 mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
@@ -99,12 +101,13 @@ class QualiSnmp(object):
     mib_source_folder = ()
 
     var_binds = ()
+
     """ raw output from PySNMP command. """
-    @inject.params(logger='logger')
-    def __init__(self, ip, logger=None, port=161, snmp_version='', snmp_community='', snmp_user='', snmp_password='',
-                 snmp_private_key='', auth_protocol=usmHMACSHAAuthProtocol, private_key_protocol=usmDESPrivProtocol):
+
+    def __init__(self, ip, port=161, snmp_version='', snmp_community='', snmp_user='', snmp_password='',
+                 snmp_private_key='', auth_protocol=usmHMACSHAAuthProtocol, private_key_protocol=usmDESPrivProtocol,
+                 logger=None, snmp_errors=list()):
         """ Initialize SNMP environment .
-        :param logger: QSLogger object
         :param ip: target device ip address
         :param port: snmp port
         :param snmp_version: snmp version, i.e. v2c, v3, etc.
@@ -125,9 +128,14 @@ class QualiSnmp(object):
         self._logger = logger
         self.target = None
         self.security = None
+        self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_errors}
         self.initialize_snmp(ip, port, snmp_version, snmp_community, snmp_user, snmp_password,
                              snmp_private_key, auth_protocol, private_key_protocol)
         self.mib_builder.setMibSources(self.mib_path)
+
+    @property
+    def logger(self):
+        return self._logger or inject.instance(LOGGER)
 
     def initialize_snmp(self, ip_address, port, snmp_version, snmp_community, snmp_user, snmp_password,
                         snmp_private_key, auth_protocol, private_key_protocol):
@@ -146,12 +154,12 @@ class QualiSnmp(object):
                 i.e. usmNoPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, etc. objects
         """
 
-        self._logger.info('QualiSnmp Creating SNMP Handler')
+        self.logger.info('QualiSnmp Creating SNMP Handler')
         ip = ip_address
         if ':' in ip_address:
             ip = ip_address.split(':')[0]
         self.target = cmdgen.UdpTransportTarget((ip, port))
-        # self._logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
+        # self.logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
         #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if '3' in snmp_version:
             self.security = UsmUserData(userName=snmp_user,
@@ -159,12 +167,12 @@ class QualiSnmp(object):
                                         privKey=snmp_private_key,
                                         authProtocol=auth_protocol,
                                         privProtocol=private_key_protocol)
-            self._logger.info('Snmp v3 handler created')
+            self.logger.info('Snmp v3 handler created')
         else:
             if not snmp_community or snmp_community == '':
                 raise Exception('QualiSnmp', 'Snmp parameters is empty or invalid')
             self.security = cmdgen.CommunityData(snmp_community)
-            self._logger.info('Snmp v2 handler created')
+            self.logger.info('Snmp v2 handler created')
         self._test_snmp_agent()
 
     def _test_snmp_agent(self, retries_count=3, sleep_length=1):
@@ -178,8 +186,8 @@ class QualiSnmp(object):
             try:
                 result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
             except Exception as e:
-                self._logger.error('Snmp agent validation failed')
-                self._logger.error(e.message)
+                self.logger.error('Snmp agent validation failed')
+                self.logger.error(e.message)
                 exception_message = e.message
                 time.sleep(sleep_length)
 
@@ -236,32 +244,47 @@ class QualiSnmp(object):
         oid_2_value = OrderedDict()
         for var_bind in self.var_binds:
             modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
-            oid_2_value[mibName] = var_bind[1].prettyPrint()
+            oid_value = var_bind[1].prettyPrint()
+            self._check_result_for_errors(oid_value)
+            oid_2_value[mibName] = oid_value
 
         return oid_2_value
+
+    def _check_result_for_errors(self, value):
+        for pattern, compiled_pattern in self._snmp_errors.iteritems():
+            if re.search(compiled_pattern, value):
+                self.logger.debug('Snmp value contain errors, {}'.format(pattern))
+                raise Exception(self.__class__.__name__, 'Snmp value contain errors, {}'.format(pattern))
 
     def get_property(self, snmp_module_name, property_name, index, return_type='str'):
         """ Get SNMP value from specified MIB and property name.
 
         :param snmp_module_name: MIB name, like 'IF-MIB'
         :param property_name: map of required property and it's default type, i.e. 'ifDescr'
-        :param index: index of the required element, i.e. '1'
+        :param index: index of the required element, i.e. '1' or '1.2.3.0'
         :param return_type: type of the output we expect to get in response, i.e. 'int'
         :return: string
         """
 
-        self._logger.debug('\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
+        self.logger.debug(
+            '\tReading \'{0}\'.{1} value from \'{2}\' ...'.format(property_name, index, snmp_module_name))
+
+        if isinstance(index, str):
+            index_list = index.split('.')
+        else:
+            index_list = [index]
         try:
-            return_value = self.get((snmp_module_name, property_name, index)).values()[0].strip(' \t\n\r')
+            snmp_request = (snmp_module_name, property_name) + tuple(index_list)
+            return_value = self.get(snmp_request).values()[0].strip(' \t\n\r')
             if 'int' in return_type:
                 return_value = int(return_value)
         except Exception as e:
-            self._logger.error(e.args)
+            self.logger.error(e.args)
             if return_type == 'int':
                 return_value = 0
             else:
                 return_value = ''
-        self._logger.debug('\tDone.')
+        self.logger.debug('\tDone.')
         return return_value
 
     def get_properties(self, snmp_mib_name, index, properties_map):
@@ -287,13 +310,13 @@ class QualiSnmp(object):
         :return: QualiMibTable
         """
 
-        self._logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
+        self.logger.debug('\tReading \'{0}\' table from \'{1}\' ...'.format(table_name, snmp_module_name))
         try:
             ret_value = self.walk((snmp_module_name, table_name))
         except Exception as e:
-            self._logger.error(e.args)
+            self.logger.error(e.args)
             ret_value = QualiMibTable(table_name)
-        self._logger.debug('\tDone.')
+        self.logger.debug('\tDone.')
         return ret_value
 
     def next(self, oid):
@@ -303,7 +326,7 @@ class QualiSnmp(object):
         :return: a pair of (next oid, value)
         """
 
-        self._command(self.cmd_gen.nextCmd, ObjectIdentity(*oid),)
+        self._command(self.cmd_gen.nextCmd, ObjectIdentity(*oid), )
 
         var_bind = self.var_binds[0][0]
         modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
@@ -338,7 +361,7 @@ class QualiSnmp(object):
                 oid_2_value[index] = {'suffix': str(suffix)}
 
             oid_2_value[index][mibName] = var_bind[0][1].prettyPrint()
-            #self._logger.debug('{0}'.format(oid_2_value))
+            # self.logger.debug('{0}'.format(oid_2_value))
 
         if indexes:
             oid_2_value = oid_2_value.get_rows(*indexes)
