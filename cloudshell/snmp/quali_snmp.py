@@ -9,10 +9,9 @@ from collections import OrderedDict
 import time
 import re
 
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
-import inject
 import os
-from pysnmp.hlapi import UsmUserData, usmHMACSHAAuthProtocol, usmDESPrivProtocol
+from logging import getLogger
+from pysnmp.hlapi import UsmUserData
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
@@ -124,7 +123,9 @@ class QualiSnmp(object):
 
     @property
     def logger(self):
-        return self._logger or inject.instance(LOGGER)
+        if not self._logger:
+            self._logger = getLogger('QualiSNMP')
+        return self._logger
 
     def initialize_snmp(self, snmp_parameters):
         """Create snmp, using provided version user details or community name
