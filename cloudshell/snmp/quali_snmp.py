@@ -236,6 +236,39 @@ class QualiSnmp(object):
 
         return oid_2_value
 
+    def get_table_field(self, *oids):
+        """ Get/Bulk get operation for columnar entries.
+        Returns exact value from table for specified oids
+
+        :param ois: list of oids to get. oid can be full dotted OID or (MIB, OID name, [index]).
+        For example, the OID to get sysContact can by any of the following:
+        ('SNMPv2-MIB', 'sysContact', 0)
+        ('SNMPv2-MIB', 'sysContact')
+        '1.3.6.1.2.1.1.4.0'
+        '1.3.6.1.2.1.1.4'
+        :return: a dictionary of <oid, value>
+        """
+
+        object_identities = []
+        for oid in oids:
+            if type(oid) is list or type(oid) is tuple:
+                oid_0 = list(oid)
+                object_identities.append(ObjectIdentity(*oid_0))
+            else:
+                oid_0 = oid
+                object_identities.append(ObjectIdentity(oid_0))
+
+        self._command(self.cmd_gen.getCmd, *object_identities)
+
+        oid_2_value = OrderedDict()
+        for var_bind in self.var_binds:
+            modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
+            oid_value = var_bind[1].prettyPrint()
+            self._check_result_for_errors(oid_value)
+            oid_2_value[mibName] = oid_value
+
+        return oid_2_value
+
     def _check_result_for_errors(self, value):
         for pattern, compiled_pattern in self._snmp_errors.iteritems():
             if re.search(compiled_pattern, value):
