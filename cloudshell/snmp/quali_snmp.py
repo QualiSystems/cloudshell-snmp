@@ -104,34 +104,25 @@ class QualiSnmp(object):
 
     """ raw output from PySNMP command. """
 
-    def __init__(self, snmp_parameters,snmp_error_values=None,
-                 logger=None):
-        """ Initialize SNMP environment .
+    def __init__(self, snmp_parameters, logger, snmp_error_values=None):
+        """ Initialize SNMP environment.
         :param SNMPParameters snmp_parameters: snmp parameters
         """
-        snmp_error_values=snmp_error_values or []
+        snmp_error_values = snmp_error_values or []
         self.cmd_gen = cmdgen.CommandGenerator()
         self.mib_builder = self.cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
         self.mib_viewer = view.MibViewController(self.mib_builder)
         self.mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
-        self._logger = logger
+        self.logger = logger
         self.target = None
         self.security = None
         self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_error_values}
-        self.initialize_snmp( snmp_parameters)
+        self.initialize_snmp(snmp_parameters)
         self.mib_builder.setMibSources(self.mib_path)
-
-    @property
-    def logger(self):
-        if not self._logger:
-            self._logger = getLogger('QualiSNMP')
-        return self._logger
 
     def initialize_snmp(self, snmp_parameters):
         """Create snmp, using provided version user details or community name
 
-        :param ip_address: target device ip address
-        :param port: snmp port
         :param SNMPParameters snmp_parameters: snmp parameters
 
         """
