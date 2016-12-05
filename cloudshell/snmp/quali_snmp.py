@@ -169,7 +169,7 @@ class QualiSnmp(object):
                 time.sleep(sleep_length)
 
         if not result:
-            raise Exception('Snmp attributes or host IP is not valid\n{0}'.format(exception_message))
+            raise Exception('Snmp attributes or host IP are not valid\n{0}'.format(exception_message))
 
     def update_mib_sources(self, mib_folder_path):
         """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
