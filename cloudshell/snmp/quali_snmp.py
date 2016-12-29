@@ -108,7 +108,9 @@ class QualiSnmp(object):
         """ Initialize SNMP environment.
         :param SNMPParameters snmp_parameters: snmp parameters
         """
+        self._snmp_errors = None
         snmp_error_values = snmp_error_values or []
+        self.set_snmp_errors(snmp_error_values)
         self.cmd_gen = cmdgen.CommandGenerator()
         self.mib_builder = self.cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
         self.mib_viewer = view.MibViewController(self.mib_builder)
@@ -116,9 +118,12 @@ class QualiSnmp(object):
         self.logger = logger
         self.target = None
         self.security = None
-        self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_error_values}
+
         self.initialize_snmp(snmp_parameters)
         self.mib_builder.setMibSources(self.mib_path)
+
+    def set_snmp_errors(self, snmp_errors):
+        self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_errors}
 
     def initialize_snmp(self, snmp_parameters):
         """Create snmp, using provided version user details or community name
