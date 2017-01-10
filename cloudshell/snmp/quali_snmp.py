@@ -9,14 +9,14 @@ from collections import OrderedDict
 import time
 import re
 
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
-import inject
 import os
-from pysnmp.hlapi import UsmUserData, usmHMACSHAAuthProtocol, usmDESPrivProtocol
+from logging import getLogger
+from pysnmp.hlapi import UsmUserData
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
+from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2Parameters
 
 cmd_gen = cmdgen.CommandGenerator()
 mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
@@ -104,74 +104,56 @@ class QualiSnmp(object):
 
     """ raw output from PySNMP command. """
 
-    def __init__(self, ip, port=161, snmp_version='', snmp_community='', snmp_user='', snmp_password='',
-                 snmp_private_key='', auth_protocol=usmHMACSHAAuthProtocol, private_key_protocol=usmDESPrivProtocol,
-                 logger=None, snmp_errors=list()):
-        """ Initialize SNMP environment .
-        :param ip: target device ip address
-        :param port: snmp port
-        :param snmp_version: snmp version, i.e. v2c, v3, etc.
-        :param snmp_community: snmp community name, used to instantiate snmp agent version 2
-        :param snmp_user: snmp user name, used to instantiate snmp agent version 3
-        :param snmp_password: snmp password, used to instantiate snmp agent version 3
-        :param snmp_private_key: snmp private key, used to instantiate snmp agent version 3
-        :param auth_protocol: authentication protocol, used to instantiate snmp agent version 3,
-                i.e. usmNoAuthProtocol, usmHMACMD5AuthProtocol, etc. objects
-        :param private_key_protocol: private key protocol, used to instantiate snmp agent version 3,
-                i.e. usmNoPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, etc. objects
+    def __init__(self, snmp_parameters, logger, snmp_error_values=None):
+        """ Initialize SNMP environment.
+        :param SNMPParameters snmp_parameters: snmp parameters
         """
-
+        self._snmp_errors = None
+        snmp_error_values = snmp_error_values or []
+        self.set_snmp_errors(snmp_error_values)
         self.cmd_gen = cmdgen.CommandGenerator()
         self.mib_builder = self.cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
         self.mib_viewer = view.MibViewController(self.mib_builder)
         self.mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
-        self._logger = logger
+        self.logger = logger
         self.target = None
         self.security = None
-        self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_errors}
-        self.initialize_snmp(ip, port, snmp_version, snmp_community, snmp_user, snmp_password,
-                             snmp_private_key, auth_protocol, private_key_protocol)
+
+        self.initialize_snmp(snmp_parameters)
         self.mib_builder.setMibSources(self.mib_path)
 
-    @property
-    def logger(self):
-        return self._logger or inject.instance(LOGGER)
+    def set_snmp_errors(self, snmp_errors):
+        self._snmp_errors = {pattern: re.compile(pattern, re.IGNORECASE) for pattern in snmp_errors}
 
-    def initialize_snmp(self, ip_address, port, snmp_version, snmp_community, snmp_user, snmp_password,
-                        snmp_private_key, auth_protocol, private_key_protocol):
+    def initialize_snmp(self, snmp_parameters):
         """Create snmp, using provided version user details or community name
 
-        :param ip_address: target device ip address
-        :param port: snmp port
-        :param snmp_version: snmp version, i.e. v2c, v3, etc.
-        :param snmp_community: snmp community name, used to instantiate snmp agent version 2
-        :param snmp_user: snmp user name, used to instantiate snmp agent version 3
-        :param snmp_password: snmp password, used to instantiate snmp agent version 3
-        :param snmp_private_key: snmp private key, used to instantiate snmp agent version 3
-        :param auth_protocol: authentication protocol, used to instantiate snmp agent version 3,
-                i.e. usmNoAuthProtocol, usmHMACMD5AuthProtocol, etc. objects
-        :param private_key_protocol: private key protocol, used to instantiate snmp agent version 3,
-                i.e. usmNoPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, etc. objects
+        :param SNMPParameters snmp_parameters: snmp parameters
+
         """
 
         self.logger.info('QualiSnmp Creating SNMP Handler')
-        ip = ip_address
-        if ':' in ip_address:
-            ip = ip_address.split(':')[0]
-        self.target = cmdgen.UdpTransportTarget((ip, port))
+        ip = snmp_parameters.ip
+        # Remove the port if for some reason some user decided its a good idea to append it to the address of the
+        # resource itself so x.x.x.x:yy becomes just x.x.x.x
+        if ':' in ip:
+            ip = ip.split(':')[0]
+        self.target = cmdgen.UdpTransportTarget((ip, snmp_parameters.port))
         # self.logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
         #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
-        if '3' in snmp_version:
-            self.security = UsmUserData(userName=snmp_user,
-                                        authKey=snmp_password,
-                                        privKey=snmp_private_key,
-                                        authProtocol=auth_protocol,
-                                        privProtocol=private_key_protocol)
+        if isinstance(snmp_parameters, SNMPV3Parameters):
+            snmp_v3_param = snmp_parameters
+            """:type: SNMPV3Parameters"""
+            self.security = UsmUserData(userName=snmp_v3_param.snmp_user,
+                                        authKey=snmp_v3_param.snmp_password,
+                                        privKey=snmp_v3_param.snmp_private_key,
+                                        authProtocol=snmp_v3_param.auth_protocol,
+                                        privProtocol=snmp_v3_param.private_key_protocol)
             self.logger.info('Snmp v3 handler created')
         else:
-            if not snmp_community or snmp_community == '':
-                raise Exception('QualiSnmp', 'Snmp parameters is empty or invalid')
-            self.security = cmdgen.CommunityData(snmp_community)
+            snmp_v2_param = snmp_parameters
+            """:type: SNMPV2Parameters"""
+            self.security = cmdgen.CommunityData(snmp_v2_param.snmp_community)
             self.logger.info('Snmp v2 handler created')
         self._test_snmp_agent()
 
@@ -192,7 +174,7 @@ class QualiSnmp(object):
                 time.sleep(sleep_length)
 
         if not result:
-            raise Exception('Snmp attributes or host IP is not valid\n{0}'.format(exception_message))
+            raise Exception('Snmp attributes or host IP are not valid\n{0}'.format(exception_message))
 
     def update_mib_sources(self, mib_folder_path):
         """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
@@ -237,6 +219,39 @@ class QualiSnmp(object):
                 object_identities.append(ObjectIdentity(*oid_0))
             else:
                 oid_0 = oid if oid.endswith('.0') else oid + '.0'
+                object_identities.append(ObjectIdentity(oid_0))
+
+        self._command(self.cmd_gen.getCmd, *object_identities)
+
+        oid_2_value = OrderedDict()
+        for var_bind in self.var_binds:
+            modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
+            oid_value = var_bind[1].prettyPrint()
+            self._check_result_for_errors(oid_value)
+            oid_2_value[mibName] = oid_value
+
+        return oid_2_value
+
+    def get_table_field(self, *oids):
+        """ Get/Bulk get operation for columnar entries.
+        Returns exact value from table for specified oids
+
+        :param ois: list of oids to get. oid can be full dotted OID or (MIB, OID name, [index]).
+        For example, the OID to get sysContact can by any of the following:
+        ('SNMPv2-MIB', 'sysContact', 0)
+        ('SNMPv2-MIB', 'sysContact')
+        '1.3.6.1.2.1.1.4.0'
+        '1.3.6.1.2.1.1.4'
+        :return: a dictionary of <oid, value>
+        """
+
+        object_identities = []
+        for oid in oids:
+            if type(oid) is list or type(oid) is tuple:
+                oid_0 = list(oid)
+                object_identities.append(ObjectIdentity(*oid_0))
+            else:
+                oid_0 = oid
                 object_identities.append(ObjectIdentity(oid_0))
 
         self._command(self.cmd_gen.getCmd, *object_identities)
@@ -329,10 +344,10 @@ class QualiSnmp(object):
         self._command(self.cmd_gen.nextCmd, ObjectIdentity(*oid), )
 
         var_bind = self.var_binds[0][0]
-        modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
+        mod_name, mib_name, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
         value = var_bind[1].prettyPrint()
 
-        return (mibName, value)
+        return mib_name, value
 
     def walk(self, oid, *indexes):
         """ Walk through the given table OID.
