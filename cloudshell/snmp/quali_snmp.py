@@ -14,8 +14,9 @@ from logging import getLogger
 from pysnmp.hlapi import UsmUserData
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
+from pysnmp.proto import rfc1905
 from pysnmp.smi import builder, view
-from pysnmp.smi.rfc1902 import ObjectIdentity
+from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2Parameters
 
 cmd_gen = cmdgen.CommandGenerator()
@@ -231,6 +232,38 @@ class QualiSnmp(object):
             oid_2_value[mibName] = oid_value
 
         return oid_2_value
+
+    def set(self, oids):
+        """SNMP Set operation.
+
+        :param oids: list of oids to set. oid can be full dotted OID or (MIB, OID name, [index]).
+            For example, the OID to get sysContact can by any of the following:
+            ('SNMPv2-MIB', 'sysContact', 0)
+            '1.3.6.1.2.1.1.4.0'
+            snmp.set([(("CISCO-CONFIG-COPY-MIB", "ccCopyProtocol", 10), 1),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopySourceFileType", 10), 1),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyDestFileType", 10), 3),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyServerAddress", 10), "10.212.95.180"),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyFileName", 10), "test_snmp_running_config_save"),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyVrfName", 10), "management"),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyEntryRowStatus", 10), 4)])
+        """
+
+        object_identities = []
+        for oid in oids:
+            if type(oid) is list or type(oid) is tuple:
+                oid_0 = list(oid)
+                if len(oid_0) < 2:
+                    raise Exception(self.__class__.__name__, "Missing oid or value data")
+
+                if type(oid[0]) is list or type(oid[0]) is tuple:
+                    if (len(oid_0[0])) < 3:
+                        raise Exception(self.__class__.__name__, "Missing oid index")
+                object_identities.append(ObjectType(ObjectIdentity(*oid_0[0]), oid[1]))
+            else:
+                raise Exception(self.__class__.__name__, "Wrong oids parameter")
+
+        self._command(self.cmd_gen.setCmd, *object_identities)
 
     def get_table_field(self, *oids):
         """ Get/Bulk get operation for columnar entries.
