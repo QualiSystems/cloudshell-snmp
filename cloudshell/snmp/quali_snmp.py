@@ -16,6 +16,8 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity
+
+from cloudshell.snmp.exceptions import SNMPConnectionFailed
 from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2Parameters
 
 cmd_gen = cmdgen.CommandGenerator()
@@ -168,13 +170,12 @@ class QualiSnmp(object):
             try:
                 result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
             except Exception as e:
-                self.logger.error('Snmp agent validation failed')
-                self.logger.error(e.message)
+                self.logger.exception('Snmp agent validation failed')
                 exception_message = e.message
                 time.sleep(sleep_length)
 
         if not result:
-            raise Exception('Snmp attributes or host IP are not valid\n{0}'.format(exception_message))
+            raise SNMPConnectionFailed('SNMP attributes or host IP are not valid\n{}'.format(exception_message))
 
     def update_mib_sources(self, mib_folder_path):
         """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
