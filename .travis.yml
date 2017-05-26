@@ -9,7 +9,7 @@ install:
 
 script:
     - python setup.py develop
-    - nosetests --with-coverage --cover-package=cloudshell.snmp --where=tests --omit=cloudshell.snmp.mibs
+    - nosetests --with-coverage --cover-package=cloudshell.snmp --where=tests --cover-config-file=.
     - python setup.py sdist --format zip
 
 after_success:
