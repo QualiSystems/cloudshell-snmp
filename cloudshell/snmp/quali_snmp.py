@@ -10,18 +10,12 @@ import time
 import re
 
 import os
-from logging import getLogger
 from pysnmp.hlapi import UsmUserData
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
-from pysnmp.smi.rfc1902 import ObjectIdentity
-from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2Parameters
-
-cmd_gen = cmdgen.CommandGenerator()
-mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
-mib_viewer = view.MibViewController(mib_builder)
-mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
+from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
+from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2ReadParameters
 
 
 class QualiSnmpError(PySnmpError):
@@ -116,6 +110,7 @@ class QualiSnmp(object):
         self.mib_viewer = view.MibViewController(self.mib_builder)
         self.mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
         self.logger = logger
+        self.is_read_only = False
         self.target = None
         self.security = None
 
@@ -134,13 +129,9 @@ class QualiSnmp(object):
 
         self.logger.info('QualiSnmp Creating SNMP Handler')
         ip = snmp_parameters.ip
-        # Remove the port if for some reason some user decided its a good idea to append it to the address of the
-        # resource itself so x.x.x.x:yy becomes just x.x.x.x
         if ':' in ip:
             ip = ip.split(':')[0]
         self.target = cmdgen.UdpTransportTarget((ip, snmp_parameters.port))
-        # self.logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
-        #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if isinstance(snmp_parameters, SNMPV3Parameters):
             snmp_v3_param = snmp_parameters
             """:type: SNMPV3Parameters"""
@@ -151,6 +142,9 @@ class QualiSnmp(object):
                                         privProtocol=snmp_v3_param.private_key_protocol)
             self.logger.info('Snmp v3 handler created')
         else:
+            if isinstance(snmp_parameters, SNMPV2ReadParameters):
+                # ToDo refactor this temp solution
+                self.is_read_only = True
             snmp_v2_param = snmp_parameters
             """:type: SNMPV2Parameters"""
             self.security = cmdgen.CommunityData(snmp_v2_param.snmp_community)
@@ -167,6 +161,7 @@ class QualiSnmp(object):
         for retry in range(retries_count):
             try:
                 result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
+                break
             except Exception as e:
                 self.logger.error('Snmp agent validation failed')
                 self.logger.error(e.message)
@@ -231,6 +226,41 @@ class QualiSnmp(object):
             oid_2_value[mibName] = oid_value
 
         return oid_2_value
+
+    def set(self, oids):
+        """SNMP Set operation.
+
+        :param oids: list of oids to set. oid can be full dotted OID or (MIB, OID name, [index]).
+            For example, the OID to get sysContact can by any of the following:
+            ('SNMPv2-MIB', 'sysContact', 0)
+            '1.3.6.1.2.1.1.4.0'
+            snmp.set([(("CISCO-CONFIG-COPY-MIB", "ccCopyProtocol", 10), 1),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopySourceFileType", 10), 1),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyDestFileType", 10), 3),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyServerAddress", 10), "10.212.95.180"),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyFileName", 10), "test_snmp_running_config_save"),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyVrfName", 10), "management"),
+                      (("CISCO-CONFIG-COPY-MIB", "ccCopyEntryRowStatus", 10), 4)])
+        """
+
+        if self.is_read_only:
+            raise Exception(self.__class__.__name__, "SNMP Read Community doesn't support snmp set command")
+
+        object_identities = []
+        for oid in oids:
+            if type(oid) is list or type(oid) is tuple:
+                oid_0 = list(oid)
+                if len(oid_0) < 2:
+                    raise Exception(self.__class__.__name__, "Missing oid or value data")
+
+                if type(oid[0]) is list or type(oid[0]) is tuple:
+                    if (len(oid_0[0])) < 3:
+                        raise Exception(self.__class__.__name__, "Missing oid index")
+                object_identities.append(ObjectType(ObjectIdentity(*oid_0[0]), oid[1]))
+            else:
+                raise Exception(self.__class__.__name__, "Wrong oids parameter")
+
+        self._command(self.cmd_gen.setCmd, *object_identities)
 
     def get_table_field(self, *oids):
         """ Get/Bulk get operation for columnar entries.
