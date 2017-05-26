@@ -10,19 +10,12 @@ import time
 import re
 
 import os
-from logging import getLogger
 from pysnmp.hlapi import UsmUserData
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
-from pysnmp.proto import rfc1905
 from pysnmp.smi import builder, view
 from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
-from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2Parameters
-
-cmd_gen = cmdgen.CommandGenerator()
-mib_builder = cmd_gen.snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder
-mib_viewer = view.MibViewController(mib_builder)
-mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
+from cloudshell.snmp.snmp_parameters import SNMPParameters, SNMPV3Parameters, SNMPV2ReadParameters
 
 
 class QualiSnmpError(PySnmpError):
@@ -117,6 +110,7 @@ class QualiSnmp(object):
         self.mib_viewer = view.MibViewController(self.mib_builder)
         self.mib_path = builder.DirMibSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mibs'))
         self.logger = logger
+        self.is_read_only = False
         self.target = None
         self.security = None
 
@@ -135,13 +129,9 @@ class QualiSnmp(object):
 
         self.logger.info('QualiSnmp Creating SNMP Handler')
         ip = snmp_parameters.ip
-        # Remove the port if for some reason some user decided its a good idea to append it to the address of the
-        # resource itself so x.x.x.x:yy becomes just x.x.x.x
         if ':' in ip:
             ip = ip.split(':')[0]
         self.target = cmdgen.UdpTransportTarget((ip, snmp_parameters.port))
-        # self.logger.debug('incoming params: ip: {0} community:{1}, user: {2}, password:{3}, private_key: {4}'.format(
-        #    ip, snmp_community, snmp_user, snmp_password, snmp_private_key))
         if isinstance(snmp_parameters, SNMPV3Parameters):
             snmp_v3_param = snmp_parameters
             """:type: SNMPV3Parameters"""
@@ -152,6 +142,9 @@ class QualiSnmp(object):
                                         privProtocol=snmp_v3_param.private_key_protocol)
             self.logger.info('Snmp v3 handler created')
         else:
+            if isinstance(snmp_parameters, SNMPV2ReadParameters):
+                # ToDo refactor this temp solution
+                self.is_read_only = True
             snmp_v2_param = snmp_parameters
             """:type: SNMPV2Parameters"""
             self.security = cmdgen.CommunityData(snmp_v2_param.snmp_community)
@@ -168,6 +161,7 @@ class QualiSnmp(object):
         for retry in range(retries_count):
             try:
                 result = self.get(('SNMPv2-MIB', 'sysObjectID', '0'))
+                break
             except Exception as e:
                 self.logger.error('Snmp agent validation failed')
                 self.logger.error(e.message)
@@ -248,6 +242,9 @@ class QualiSnmp(object):
                       (("CISCO-CONFIG-COPY-MIB", "ccCopyVrfName", 10), "management"),
                       (("CISCO-CONFIG-COPY-MIB", "ccCopyEntryRowStatus", 10), 4)])
         """
+
+        if self.is_read_only:
+            raise Exception(self.__class__.__name__, "SNMP Read Community doesn't support snmp set command")
 
         object_identities = []
         for oid in oids:
