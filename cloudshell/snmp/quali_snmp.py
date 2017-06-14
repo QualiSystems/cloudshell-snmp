@@ -93,7 +93,6 @@ class QualiSnmp(object):
     """
 
     mib_source_folder = ()
-
     var_binds = ()
 
     """ raw output from PySNMP command. """
@@ -164,7 +163,7 @@ class QualiSnmp(object):
                 break
             except Exception as e:
                 self.logger.error('Snmp agent validation failed')
-                self.logger.error(e.message)
+                self.logger.exception(e)
                 exception_message = e.message
                 time.sleep(sleep_length)
 
@@ -306,7 +305,7 @@ class QualiSnmp(object):
 
         :param snmp_module_name: MIB name, like 'IF-MIB'
         :param property_name: map of required property and it's default type, i.e. 'ifDescr'
-        :param index: index of the required element, i.e. '1' or '1.2.3.0'
+        :param str index: index of the required element, i.e. '1' or '1.2.3.0'
         :param return_type: type of the output we expect to get in response, i.e. 'int'
         :return: string
         """
@@ -396,9 +395,6 @@ class QualiSnmp(object):
             if str(suffix).isdigit():
                 # Single index like 1, 2, 3... - treat as int
                 index = int(str(suffix))
-            elif str(suffix).replace('.', '', 1).isdigit():
-                # Double index like 1.1, 1.2, 2.1... - treat as float
-                index = float(str(suffix))
             else:
                 # Triple or more index (like IPv4 in IP-Table) - treat as str.
                 index = str(suffix)
