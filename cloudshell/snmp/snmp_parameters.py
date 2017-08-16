@@ -47,5 +47,5 @@ class SNMPV3Parameters(SNMPParameters):
         self.snmp_user = snmp_user
         self.snmp_password = snmp_password
         self.snmp_private_key = snmp_private_key
-        self.auth_protocol = auth_protocol,
+        self.auth_protocol = auth_protocol
         self.private_key_protocol = private_key_protocol
