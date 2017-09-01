@@ -177,7 +177,7 @@ class QualiSnmp(object):
         """
 
         builder.DirMibSource(mib_folder_path)
-        mib_sources = self.mib_builder.getMibSources() + (builder.DirMibSource(mib_folder_path),)
+        mib_sources = (builder.DirMibSource(mib_folder_path),) + self.mib_builder.getMibSources()
         self.mib_builder.setMibSources(*mib_sources)
 
     def load_mib(self, mib_list):
