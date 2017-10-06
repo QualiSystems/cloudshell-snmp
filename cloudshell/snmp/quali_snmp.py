@@ -92,7 +92,6 @@ class QualiSnmp(object):
         pysnmp.sourceforge.net/examples/hlapi/asyncore/sync/manager/cmdgen/table-operations.html
     """
 
-    mib_source_folder = ()
     var_binds = ()
 
     """ raw output from PySNMP command. """
@@ -142,7 +141,6 @@ class QualiSnmp(object):
             self.logger.info('Snmp v3 handler created')
         else:
             if isinstance(snmp_parameters, SNMPV2ReadParameters):
-                # ToDo refactor this temp solution
                 self.is_read_only = True
             snmp_v2_param = snmp_parameters
             """:type: SNMPV2Parameters"""
@@ -219,12 +217,18 @@ class QualiSnmp(object):
 
         oid_2_value = OrderedDict()
         for var_bind in self.var_binds:
-            modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
-            oid_value = var_bind[1].prettyPrint()
-            self._check_result_for_errors(oid_value)
-            oid_2_value[mibName] = oid_value
+            mib_name, oid_value, suffix = self._translate_var_bind(var_bind)
+            oid_2_value[mib_name] = oid_value
 
         return oid_2_value
+
+    def _translate_var_bind(self, var_bind):
+        mod_name, mib_name, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
+        oid_value = str(var_bind[1].prettyPrint())
+        if oid_value.lower().startswith("0x"):
+            oid_value = str(var_bind[1])
+        self._check_result_for_errors(oid_value)
+        return mib_name, oid_value, suffix
 
     def set(self, oids):
         """SNMP Set operation.
@@ -287,10 +291,8 @@ class QualiSnmp(object):
 
         oid_2_value = OrderedDict()
         for var_bind in self.var_binds:
-            modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
-            oid_value = var_bind[1].prettyPrint()
-            self._check_result_for_errors(oid_value)
-            oid_2_value[mibName] = oid_value
+            mib_name, oid_value, suffix = self._translate_var_bind(var_bind)
+            oid_2_value[mib_name] = oid_value
 
         return oid_2_value
 
@@ -373,8 +375,7 @@ class QualiSnmp(object):
         self._command(self.cmd_gen.nextCmd, ObjectIdentity(*oid), )
 
         var_bind = self.var_binds[0][0]
-        mod_name, mib_name, suffix = self.mib_viewer.getNodeLocation(var_bind[0])
-        value = var_bind[1].prettyPrint()
+        mib_name, value, suffix = self._translate_var_bind(var_bind)
 
         return mib_name, value
 
@@ -390,7 +391,7 @@ class QualiSnmp(object):
 
         oid_2_value = QualiMibTable(oid[1])
         for var_bind in self.var_binds:
-            modName, mibName, suffix = self.mib_viewer.getNodeLocation(var_bind[0][0])
+            mibName, mib_value, suffix = self._translate_var_bind(var_bind[0])
             # We want table index to be numeric if possible.
             if str(suffix).isdigit():
                 # Single index like 1, 2, 3... - treat as int
@@ -401,7 +402,7 @@ class QualiSnmp(object):
             if not oid_2_value.get(index):
                 oid_2_value[index] = {'suffix': str(suffix)}
 
-            oid_2_value[index][mibName] = var_bind[0][1].prettyPrint()
+            oid_2_value[index][mibName] = mib_value
             # self.logger.debug('{0}'.format(oid_2_value))
 
         if indexes:

@@ -1,4 +1,5 @@
-pysnmp==4.3.1
-pysmi==0.0.6
-pyasn1==0.1.9
-ply==3.8
+pycryptodome==3.4.7
+pysmi==0.1.3
+pyasn1==0.3.6
+ply==3.10
+pysnmp==4.3.9
