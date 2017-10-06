@@ -1,4 +1,5 @@
-from pysnmp.hlapi import usmHMACSHAAuthProtocol, usmDESPrivProtocol, usmNoPrivProtocol, usmAesCfb128Protocol
+from pysnmp.hlapi import usmNoPrivProtocol, usmDESPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, \
+    usmAesCfb192Protocol, usmAesCfb256Protocol, usmNoAuthProtocol, usmHMACMD5AuthProtocol, usmHMACSHAAuthProtocol
 
 
 class SNMPParameters(object):
@@ -18,6 +19,7 @@ class SNMPV2WriteParameters(SNMPParameters):
         SNMPParameters.__init__(self, ip=ip, port=port)
         self.snmp_community = snmp_write_community
 
+
 class SNMPV2ReadParameters(SNMPParameters):
     def __init__(self, ip, snmp_read_community, port=161):
         """
@@ -29,10 +31,19 @@ class SNMPV2ReadParameters(SNMPParameters):
         SNMPParameters.__init__(self, ip=ip, port=port)
         self.snmp_community = snmp_read_community
 
+
 class SNMPV3Parameters(SNMPParameters):
+    AUTH_PROTOCOL_MAP = {"No Authentication Protocol": usmNoAuthProtocol, "MD5": usmHMACMD5AuthProtocol,
+                         "SHA": usmHMACSHAAuthProtocol}
+
+    PRIV_PROTOCOL_MAP = {"No Privacy Protocol": usmNoPrivProtocol, "DES": usmDESPrivProtocol,
+                         "3DES-EDE": usm3DESEDEPrivProtocol,
+                         "AES-128": usmAesCfb128Protocol, "AES-192": usmAesCfb192Protocol,
+                         "AES-256": usmAesCfb256Protocol}
+
     def __init__(self, ip, snmp_user, snmp_password,
-                 snmp_private_key, port=161, auth_protocol=usmHMACSHAAuthProtocol,
-                 private_key_protocol=usmAesCfb128Protocol):
+                 snmp_private_key, port=161, auth_protocol="SHA",
+                 private_key_protocol="AES-128"):
         """
         Represents parameters for an SMNPV3 connection
         :param str ip: The device IP
@@ -47,5 +58,5 @@ class SNMPV3Parameters(SNMPParameters):
         self.snmp_user = snmp_user
         self.snmp_password = snmp_password
         self.snmp_private_key = snmp_private_key
-        self.auth_protocol = auth_protocol
-        self.private_key_protocol = private_key_protocol
+        self.auth_protocol = self.AUTH_PROTOCOL_MAP[auth_protocol]
+        self.private_key_protocol = self.PRIV_PROTOCOL_MAP[private_key_protocol]
