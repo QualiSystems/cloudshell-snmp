@@ -37,6 +37,26 @@ class TestQualiSnmpInit(TestCase):
         # Assert
         self.assertIsNotNone(result)
 
+    def test_get_property(self):
+        # Setup
+        quali_snmp = self.set_up()
+
+        # Act
+        result = quali_snmp.get()
+
+        # Assert
+        self.assertIsNotNone(result)
+
+    def test_get_table(self):
+        # Setup
+        quali_snmp = self.set_up()
+
+        # Act
+        result = quali_snmp.get()
+
+        # Assert
+        self.assertIsNotNone(result)
+
     def test_walk(self):
         # Setup
         quali_snmp = self.set_up()

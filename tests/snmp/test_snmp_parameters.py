@@ -7,8 +7,8 @@ class TestSNMPParametersInit(TestCase):
     SNMP_WRITE_COMMUNITY = "private"
     SNMP_READ_COMMUNITY = "public"
     SNMP_USER = "admin"
-    SNMP_PASSWORD = "P@ssw0rD"
-    SNMP_PRIVATE_KEY = "PrivKey"
+    SNMP_PASSWORD = "S3c@sw0rd"
+    SNMP_PRIVATE_KEY = "S3c@tw0rd"
 
     def test_snmp_v2_write_parameters(self):
         snmp_v2_write_parameters = SNMPV2WriteParameters(ip=self.IP,
