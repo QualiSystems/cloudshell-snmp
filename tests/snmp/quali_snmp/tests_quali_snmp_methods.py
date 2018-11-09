@@ -29,6 +29,20 @@ class TestQualiSnmpInit(TestCase):
                                           snmp_private_key="priv_key")
         return quali_snmp.QualiSnmp(snmp_parameters=snmp_v3_params, logger=self._logger)
 
+    @patch("cloudshell.snmp.quali_snmp.view")
+    @patch("cloudshell.snmp.quali_snmp.cmdgen")
+    @patch("cloudshell.snmp.quali_snmp.QualiSnmp.initialize_snmp")
+    def test_snmp_init(self, init_mock, cmdgen_mock, view_mock):
+        result = MagicMock()
+        result.prettyPrint.return_value = "response"
+        cmdgen_mock.CommandGenerator().getCmd.return_value = "", "", "", [["view", result]]
+
+        snmp_v3_params = SNMPV3Parameters(ip="localhost", snmp_user="user", snmp_password="pass",
+                                          snmp_private_key="priv_key")
+        quali_snmp.QualiSnmp(snmp_parameters=snmp_v3_params, logger=MagicMock())
+
+        init_mock.assert_called_once_with(snmp_v3_params)
+
     @patch("cloudshell.snmp.quali_snmp.ObjectIdentity")
     @patch("cloudshell.snmp.quali_snmp.QualiSnmp._command")
     def test_get(self, cmd_mock, obj_id_mock):
