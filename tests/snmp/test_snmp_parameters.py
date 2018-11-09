@@ -1,7 +1,4 @@
 from unittest import TestCase
-from mock import MagicMock, patch
-from cloudshell.core.logger.qs_logger import get_qs_logger
-from cloudshell.snmp.quali_snmp import QualiSnmp
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2ReadParameters, SNMPV2WriteParameters
 
 
