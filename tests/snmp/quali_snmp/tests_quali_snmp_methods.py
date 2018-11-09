@@ -91,17 +91,17 @@ class TestQualiSnmpInit(TestCase):
         get_mock.assert_called_once_with(expected_call_params)
 
     @patch("cloudshell.snmp.quali_snmp.ObjectIdentity")
-    def test_get(self, obj_id_mock):
+    @patch("cloudshell.snmp.quali_snmp.QualiSnmp._command")
+    def test_get(self, cmd_mock, obj_id_mock):
         # Setup
         quali_snmp = self.set_up()
-        oid = MagicMock()
 
         # Act
-        quali_snmp._command(self._cmdgen_mock.CommandGenerator().getCmd, oid)
+        result = quali_snmp.get("1.2.3.4")
 
         # Assert
-        self.assertIsNotNone(quali_snmp.var_binds)
-        self._cmdgen_mock.CommandGenerator().getCmd.assert_called_once_with(quali_snmp.security, quali_snmp.target, oid)
+        self.assertIsNotNone(result)
+        cmd_mock.assert_called_once_with(self._cmdgen_mock.CommandGenerator().getCmd, obj_id_mock.return_value)
 
     @patch("cloudshell.snmp.quali_snmp.QualiSnmp.get")
     def test_get_property(self, get_mock):
@@ -163,15 +163,14 @@ class TestQualiSnmpInit(TestCase):
         # Assert
         cmd_mock.assert_called_once_with(self._cmdgen_mock.CommandGenerator().setCmd, obj_type_mock.return_value)
 
-    def test_command(self, get_mock):
+    def test_command(self):
         # Setup
         quali_snmp = self.set_up()
-        mib = "SNMPv2-MIB"
-        mib_property = "sysDescr"
-        index = "1"
+        oid = MagicMock()
 
         # Act
-        result = quali_snmp._command(mib, mib_property, index)
+        quali_snmp._command(self._cmdgen_mock.CommandGenerator().getCmd, oid)
 
         # Assert
-        self.assertIsNotNone(result)
+        self.assertIsNotNone(quali_snmp.var_binds)
+        self._cmdgen_mock.CommandGenerator().getCmd.assert_called_once_with(quali_snmp.security, quali_snmp.target, oid)
