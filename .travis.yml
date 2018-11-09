@@ -9,7 +9,7 @@ install:
 
 script:
     - python setup.py develop
-    - nosetests --with-coverage --cover-package=cloudshell.snmp --where=tests --attr=NOSE_COVER_CONFIG_FILE=.
+    - nosetests --with-coverage --cover-package=cloudshell.snmp --where=tests
     - python setup.py sdist --format zip
 
 after_success:
