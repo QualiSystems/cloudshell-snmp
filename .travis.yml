@@ -5,7 +5,7 @@ python:
 install:
     - pip install -r requirements.txt
     - pip install -r test_requirements.txt
-    - pip install coveralls
+    - pip install codecov
 
 script:
     - python setup.py develop
@@ -13,4 +13,4 @@ script:
     - python setup.py sdist --format zip
 
 after_success:
-    coveralls
+    codecov
