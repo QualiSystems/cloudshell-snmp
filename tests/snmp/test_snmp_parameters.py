@@ -1,4 +1,7 @@
 from unittest import TestCase
+from mock import MagicMock, patch
+from cloudshell.core.logger.qs_logger import get_qs_logger
+from cloudshell.snmp.quali_snmp import QualiSnmp
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2ReadParameters, SNMPV2WriteParameters
 
 
@@ -7,8 +10,8 @@ class TestSNMPParametersInit(TestCase):
     SNMP_WRITE_COMMUNITY = "private"
     SNMP_READ_COMMUNITY = "public"
     SNMP_USER = "admin"
-    SNMP_PASSWORD = "P@ssw0rD"
-    SNMP_PRIVATE_KEY = "PrivKey"
+    SNMP_PASSWORD = "S3c@sw0rd"
+    SNMP_PRIVATE_KEY = "S3c@tw0rd"
 
     def test_snmp_v2_write_parameters(self):
         snmp_v2_write_parameters = SNMPV2WriteParameters(ip=self.IP,
