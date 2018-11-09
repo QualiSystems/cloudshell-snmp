@@ -14,8 +14,8 @@ class TestSNMPParametersInit(TestCase):
         snmp_v2_write_parameters = SNMPV2WriteParameters(ip=self.IP,
                                                          snmp_write_community=self.SNMP_WRITE_COMMUNITY)
 
-        self.assertEquals(self.IP, snmp_v2_write_parameters.ip)
-        self.assertEquals(self.SNMP_WRITE_COMMUNITY, snmp_v2_write_parameters.snmp_community)
+        self.assertIs(self.IP, snmp_v2_write_parameters.ip)
+        self.assertIs(self.SNMP_WRITE_COMMUNITY, snmp_v2_write_parameters.snmp_community)
 
     def test_snmp_v2_read_parameters(self):
         snmp_v2_read_parameters = SNMPV2ReadParameters(ip=self.IP, snmp_read_community=self.SNMP_READ_COMMUNITY)
