@@ -56,7 +56,7 @@ class SNMPV3Parameters(SNMPParameters):
         """
         SNMPParameters.__init__(self, ip=ip, port=port)
         self.snmp_user = snmp_user
-        self.snmp_password = snmp_password
-        self.snmp_private_key = snmp_private_key
+        self.snmp_password = snmp_password or None
+        self.snmp_private_key = snmp_private_key or None
         self.auth_protocol = self.AUTH_PROTOCOL_MAP[auth_protocol]
         self.private_key_protocol = self.PRIV_PROTOCOL_MAP[private_key_protocol]
