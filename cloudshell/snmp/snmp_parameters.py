@@ -66,10 +66,7 @@ class SNMPV3Parameters(SNMPParameters):
         self.snmp_password = snmp_password or ''
         self.snmp_private_key = snmp_private_key or ''
         self.auth_protocol = auth_protocol
-        self.private_key_protocol = private_key_protocol if private_key_protocol in [self.PRIV_NO_PRIV, self.PRIV_DES,
-                                                                                     self.PRIV_3DES, self.PRIV_AES128,
-                                                                                     self.PRIV_AES192,
-                                                                                     self.PRIV_AES256] else self.PRIV_NO_PRIV
+        self.private_key_protocol = private_key_protocol
 
     def validate(self):
         """

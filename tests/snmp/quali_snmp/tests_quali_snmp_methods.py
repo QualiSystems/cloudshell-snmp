@@ -56,8 +56,10 @@ class TestQualiSnmpInit(TestCase):
         usm_mock.assert_called_once_with(userName=self.SNMP_V3_PARAMS.snmp_user,
                                          authKey=self.SNMP_V3_PARAMS.snmp_password,
                                          privKey=self.SNMP_V3_PARAMS.snmp_private_key,
-                                         authProtocol=self.SNMP_V3_PARAMS.auth_protocol,
-                                         privProtocol=self.SNMP_V3_PARAMS.private_key_protocol)
+                                         authProtocol=quali_snmp.QualiSnmp.AUTH_PROTOCOL_MAP.get(
+                                             self.SNMP_V3_PARAMS.auth_protocol),
+                                         privProtocol=quali_snmp.QualiSnmp.PRIV_PROTOCOL_MAP.get(
+                                             self.SNMP_V3_PARAMS.private_key_protocol))
 
     @patch("cloudshell.snmp.quali_snmp.view")
     @patch("cloudshell.snmp.quali_snmp.cmdgen")
@@ -261,7 +263,7 @@ class TestQualiSnmpInit(TestCase):
         quali_snmp = self.set_up()
         mibs_path = "./temp/path"
         sources = "/tmp"
-        sources_tuple = (sources, )
+        sources_tuple = (sources,)
         builder_mock.DirMibSource.return_value = mibs_path
         set_mib_src_mock = MagicMock()
         quali_snmp.mib_builder.getMibSources.return_value = sources_tuple
