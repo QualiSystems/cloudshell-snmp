@@ -133,7 +133,7 @@ class QualiSnmp(object):
     def initialize_snmp(self, snmp_parameters):
         """Create snmp, using provided version user details or community name
 
-        :param SNMPParameters snmp_parameters: snmp parameters
+        :param SNMPV3Parameters snmp_parameters: snmp parameters
 
         """
 
