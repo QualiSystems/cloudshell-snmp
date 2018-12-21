@@ -32,13 +32,3 @@ class TestSNMPParametersInit(TestCase):
         self.assertTrue(snmp_v3_parameters.snmp_user == self.SNMP_USER)
         self.assertTrue(snmp_v3_parameters.snmp_password == self.SNMP_PASSWORD)
         self.assertTrue(snmp_v3_parameters.snmp_private_key == self.SNMP_PRIVATE_KEY)
-
-    def test_snmp_v3_parameters_with_empty_pass_and_priv_key(self):
-        snmp_v3_parameters = SNMPV3Parameters(ip=self.IP, snmp_user=self.SNMP_USER,
-                                              snmp_password="",
-                                              snmp_private_key="")
-
-        self.assertTrue(snmp_v3_parameters.ip == self.IP)
-        self.assertTrue(snmp_v3_parameters.snmp_user == self.SNMP_USER)
-        self.assertIsNone(snmp_v3_parameters.snmp_password)
-        self.assertIsNone(snmp_v3_parameters.snmp_private_key)
