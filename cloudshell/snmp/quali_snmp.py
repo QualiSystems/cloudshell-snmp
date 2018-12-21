@@ -134,8 +134,8 @@ class QualiSnmp(object):
             snmp_v3_param = snmp_parameters
             """:type: SNMPV3Parameters"""
             self.security = UsmUserData(userName=snmp_v3_param.snmp_user,
-                                        authKey=snmp_v3_param.snmp_password,
-                                        privKey=snmp_v3_param.snmp_private_key,
+                                        authKey=snmp_v3_param.snmp_password or None,
+                                        privKey=snmp_v3_param.snmp_private_key or None,
                                         authProtocol=snmp_v3_param.auth_protocol,
                                         privProtocol=snmp_v3_param.private_key_protocol)
             self.logger.info('Snmp v3 handler created')
