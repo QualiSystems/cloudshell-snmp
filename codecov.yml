@@ -1,0 +1,2 @@
+ignore:
+  - "./cloudshell/snmp/mibs"
