@@ -5,9 +5,9 @@ class SNMPParameters(object):
 
     def validate(self):
         if not self.ip:
-            raise Exception(self.__class__.__name__, 'SNMP host is not defined')
+            raise Exception('SNMP host is not defined')
         if not self.port:
-            raise Exception(self.__class__.__name__, 'SNMP port is not defined')
+            raise Exception('SNMP port is not defined')
 
 
 class SNMPV2WriteParameters(SNMPParameters):
@@ -75,26 +75,23 @@ class SNMPV3Parameters(SNMPParameters):
         super(SNMPV3Parameters, self).validate()
 
         if not self.snmp_user:
-            raise Exception(self.__class__.__name__, 'SNMPv3 user is not defined')
+            raise Exception('SNMPv3 user is not defined')
 
         if self.auth_protocol not in [self.AUTH_NO_AUTH, self.AUTH_MD5, self.AUTH_SHA]:
-            raise Exception(self.__class__.__name__, 'Unknown Authentication Protocol {}'.format(self.auth_protocol))
+            raise Exception('Unknown Authentication Protocol {}'.format(self.auth_protocol))
         if self.private_key_protocol not in [self.PRIV_NO_PRIV, self.PRIV_DES, self.PRIV_3DES, self.PRIV_AES128,
                                              self.PRIV_AES192, self.PRIV_AES256]:
-            raise Exception(self.__class__.__name__, 'Unknown Privacy Protocol {}'.format(self.private_key_protocol))
+            raise Exception('Unknown Privacy Protocol {}'.format(self.private_key_protocol))
 
         if self.auth_protocol == self.AUTH_NO_AUTH and self.private_key_protocol != self.PRIV_NO_PRIV:
-            raise Exception(self.__class__.__name__,
-                            '{} cannot be used with {}'.format(self.private_key_protocol, self.auth_protocol))
+            raise Exception('{} cannot be used with {}'.format(self.private_key_protocol, self.auth_protocol))
 
         if self.auth_protocol != self.AUTH_NO_AUTH and not self.snmp_password:
-            raise Exception(self.__class__.__name__,
-                            'SNMPv3 Password has to be specified for Authentication Protocol {}'.format(
+            raise Exception('SNMPv3 Password has to be specified for Authentication Protocol {}'.format(
                                 self.auth_protocol))
 
         if self.private_key_protocol != self.PRIV_NO_PRIV and not self.snmp_private_key:
-            raise Exception(self.__class__.__name__,
-                            'SNMPv3 Private key has to be specified for Privacy Protocol {}'.format(
+            raise Exception('SNMPv3 Private key has to be specified for Privacy Protocol {}'.format(
                                 self.private_key_protocol))
 
     def get_valid(self):
