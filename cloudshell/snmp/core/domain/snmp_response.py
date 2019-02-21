@@ -2,7 +2,7 @@ from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 
-class SnmpResponse(ObjectType):
+class SnmpResponse(object):
     def __init__(self, oid, value, snmp_engine, logger):
         self._raw_oid = oid
         self._snmp_mib_translator = CommandGeneratorVarBinds.getMibViewController(snmp_engine)
@@ -11,7 +11,13 @@ class SnmpResponse(ObjectType):
         self._mib_name = None
         self._index = None
         self._raw_value = value
-        super(SnmpResponse, self).__init__(ObjectIdentity(self._raw_oid), self._raw_value)
+        self._object_type = ObjectType(ObjectIdentity(self._raw_oid), self._raw_value)
+
+    @property
+    def object_type(self):
+        if not self._object_type.isFullyResolved():
+            self._object_type.resolveWithMib(self._snmp_mib_translator)
+        return self._object_type
 
     @property
     def raw_value(self):
@@ -19,9 +25,8 @@ class SnmpResponse(ObjectType):
 
     @property
     def oid(self):
-        if not self.isFullyResolved():
-            self.resolveWithMib(self._snmp_mib_translator)
-        return self[0].getOid()
+
+        return self.object_type[0].getOid()
 
     @property
     def mib_name(self):
@@ -43,17 +48,13 @@ class SnmpResponse(ObjectType):
 
     @property
     def value(self):
-        if not self.isFullyResolved():
-            self.resolveWithMib(self._snmp_mib_translator)
-        value = str(self[1].prettyPrint())
+        value = str(self.object_type[1].prettyPrint())
         if value.lower().startswith("0x"):
             value = str(self._raw_value)
         return value
 
     def _get_oid(self):
-        if not self.isFullyResolved():
-            self.resolveWithMib(self._snmp_mib_translator)
-        oid = self[0].getMibSymbol()
+        oid = self.object_type[0].getMibSymbol()
         self._mib_name = oid[0]
         self._mib_id = oid[1]
         if isinstance(oid[-1], tuple):

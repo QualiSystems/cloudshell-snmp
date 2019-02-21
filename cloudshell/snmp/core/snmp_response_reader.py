@@ -20,7 +20,7 @@ class SnmpResponseReader(object):
         self._logger = logger
         self.cb_ctx = cb_ctx or {'is_snmp_timeout': False, 'reqTime': time.time(), '': True,
                                  "retries": self._retry_count}
-        self.result = list()
+        self.result = set()
 
     def cb_fun(self, snmp_engine, send_request_handle, error_indication,
                error_status, error_index, var_bind_table, cb_ctx):
@@ -32,13 +32,17 @@ class SnmpResponseReader(object):
 
     def cb_walk_fun(self, snmp_engine, send_request_handle, error_indication,
                     error_status, error_index, var_bind_table, cb_ctx):
-        if self.cb_ctx['is_snmp_timeout'] and self._get_bulk_flag:
-            self.cb_ctx["get_bulk_flag"] = True
-            self.cb_ctx['is_snmp_timeout'] = False
+        # if self.cb_ctx['is_snmp_timeout'] and self._get_bulk_flag:
+        #     self.cb_ctx["get_bulk_flag"] = True
+        #     self.cb_ctx['is_snmp_timeout'] = False
 
         if isinstance(error_indication, RequestTimedOut):
+            bulk_half_rep_flag = self.cb_ctx.get("get_bulk_retry_half_repetitions_flag")
+            if not bulk_half_rep_flag:
+                self.cb_ctx["get_bulk_retry_half_repetitions_flag"] = True
+            else:
+                self.cb_ctx["get_bulk_flag"] = False
             self.cb_ctx['is_snmp_timeout'] = True
-            self.cb_ctx["get_bulk_flag"] = False
 
         get_bulk_flag = self.cb_ctx.get("get_bulk_flag", self._get_bulk_flag)
         if error_indication and not self.cb_ctx['retries']:
@@ -59,22 +63,27 @@ class SnmpResponseReader(object):
                 # fuzzy logic of walking a broken OID
                 if len(next_oid) < 4:
                     pass
-                elif (self._retry_count - self.cb_ctx[
-                    'retries']) * 10 / self._retry_count > 5:
-                    next_oid = next_oid[:-2] + (next_oid[-2] + 1,)
-                elif next_oid[-1]:
-                    next_oid = next_oid[:-1] + (next_oid[-1] + 1,)
-                else:
-                    next_oid = next_oid[:-2] + (next_oid[-2] + 1, 0)
+                # elif (self._retry_count - self.cb_ctx[
+                #     'retries']) * 10 / self._retry_count > 5:
+                #     next_oid = next_oid[:-2] + (next_oid[-2] + 1,)
+                # elif next_oid[-1]:
+                #     next_oid = next_oid[:-1] + (next_oid[-1],)
+                # else:
+                #     next_oid = next_oid[:-2] + (next_oid[-2] + 1, 0)
 
                 self.cb_ctx['retries'] -= 1
                 self.cb_ctx['lastOID'] = next_oid
 
                 self._logger.debug('Retrying with OID %s (%s retries left)...' % (next_oid, self.cb_ctx['retries']))
 
+                get_bulk_repetitions = self._get_bulk_repetitions
+                half_bulk_repetitions_flag = self.cb_ctx.get("get_bulk_retry_half_repetitions_flag")
+                if half_bulk_repetitions_flag:
+                    get_bulk_repetitions = (self._get_bulk_repetitions // 2)
+
                 # initiate another SNMP walk iteration
                 if get_bulk_flag:
-                    self.send_bulk_var_binds(oid=next_oid)
+                    self.send_bulk_var_binds(oid=next_oid, get_bulk_repetitions=get_bulk_repetitions)
                 else:
                     self.send_walk_var_binds(oid=next_oid)
 
@@ -125,7 +134,8 @@ class SnmpResponseReader(object):
 
         if not stop_flag:
             response = SnmpResponse(oid, value, snmp_engine=self._snmp_engine, logger=self._logger)
-            self.result.append(response)
+            # self.result.append(response)
+            self.result.add(response)
         return stop_flag
 
     def send_walk_var_binds(self, oid, stop_oid=None):
@@ -141,7 +151,7 @@ class SnmpResponseReader(object):
             self.cb_walk_fun, self.cb_ctx
         )
 
-    def send_bulk_var_binds(self, oid, stop_oid=None):
+    def send_bulk_var_binds(self, oid, stop_oid=None, get_bulk_repetitions=None):
         cmd_gen = cmdgen.BulkCommandGenerator()
         if stop_oid and not self._stop_oid:
             self._stop_oid = stop_oid
@@ -150,7 +160,7 @@ class SnmpResponseReader(object):
             self._snmp_engine,
             'tgt',
             self._context_id, self._context_name,
-            0, self._get_bulk_repetitions,
+            0, get_bulk_repetitions or self._get_bulk_repetitions,
             [(oid, None)],
             self.cb_walk_fun, self.cb_ctx
         )

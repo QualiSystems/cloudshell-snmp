@@ -63,3 +63,4 @@ target/
 .pypirc
 .idea
 cloudshell/snmp/test.py
+/cloudshell/snmp/test*.py

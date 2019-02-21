@@ -29,9 +29,9 @@ class WriteSnmpService(ReadSnmpService):
         snmp_set_oids_list = snmp_set_oids
         if not isinstance(snmp_set_oids_list, (list, tuple)):
             snmp_set_oids_list = [snmp_set_oids]
-        object_identities = []
+        object_types = []
         for snmp_set_obj in snmp_set_oids_list:
-            object_identities.append(snmp_set_obj.get_oid(self._snmp_engine))
+            object_types.append(snmp_set_obj.get_object_type(self._snmp_engine))
 
         cb_ctx = {
             'is_snmp_timeout': False,
@@ -40,7 +40,7 @@ class WriteSnmpService(ReadSnmpService):
         }
         service = self._create_response_service()
 
-        service.send_set_var_binds(object_identities)
+        service.send_set_var_binds(object_types)
 
         self._start_dispatcher()
 

@@ -63,11 +63,12 @@ class QualiMibTable(dict):
         return QualiMibTable(self._name, sorted(column.items(), key=lambda t: int(t[1][name])))
 
     @staticmethod
-    def create_from_list(response_list):
-        mib_table = QualiMibTable("")
+    def create_from_list(name, response_list):
+        mib_table = QualiMibTable(name)
         for item in response_list:
-            entry = mib_table.get(item.index, dict())
+            entry = mib_table.get(item.index)
             if not entry:
+                entry = dict()
                 mib_table[item.index] = entry
             entry[item.mib_id] = item
         return mib_table

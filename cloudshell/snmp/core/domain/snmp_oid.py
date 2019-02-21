@@ -6,6 +6,10 @@ from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 class BaseSnmpOid(object):
     @abstractmethod
+    def get_object_type(self, snmp_engine):
+        pass
+
+    @abstractmethod
     def get_oid(self, snmp_engine):
         pass
 
@@ -15,19 +19,25 @@ class SnmpRawOid(BaseSnmpOid):
         self._oid = oid
         self._asn_mib_sources = asn_mib_sources
         self._custom_mib_sources = custom_mib_sources
-        self._object_identity = None
 
     def _create_object_identity(self):
-        self._object_identity = ObjectIdentity(self._oid)
+        object_identity = ObjectIdentity(self._oid)
         if self._asn_mib_sources:
-            self._object_identity.addAsn1MibSource(self._asn_mib_sources)
+            object_identity.addAsn1MibSource(self._asn_mib_sources)
         if self._custom_mib_sources:
-            self._object_identity.addMibSource(self._custom_mib_sources)
+            object_identity.addMibSource(self._custom_mib_sources)
+        return object_identity
 
     def get_oid(self, snmp_engine):
-        self._create_object_identity()
-        self._object_identity.resolveWithMib(CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine))
-        return self._object_identity
+        return self._oid
+
+    def get_object_type(self, snmp_engine):
+        mib_view = CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine)
+        object_identity = self._create_object_identity()
+        object_identity.resolveWithMib(mib_view)
+        object_type = ObjectType(object_identity)
+        object_type.resolveWithMib(mib_view)
+        return object_type
 
 
 class SnmpMibOid(BaseSnmpOid):
@@ -40,19 +50,25 @@ class SnmpMibOid(BaseSnmpOid):
         self._object_identity = None
 
     def _create_object_identity(self):
-        self._object_identity = ObjectIdentity(*(self._mib_name, self._mib_id))
+        object_identity = ObjectIdentity(*(self._mib_name, self._mib_id))
         if self.index is not None:
-            self._object_identity = ObjectIdentity(*(self._mib_name, self._mib_id, self.index))
+            object_identity = ObjectIdentity(*(self._mib_name, self._mib_id, self.index))
         if self._asn_mib_sources:
-            self._object_identity.addAsn1MibSource(self._asn_mib_sources)
+            object_identity.addAsn1MibSource(self._asn_mib_sources)
         if self._custom_mib_sources:
-            self._object_identity.addMibSource(self._custom_mib_sources)
+            object_identity.addMibSource(self._custom_mib_sources)
+        return object_identity
 
     def get_oid(self, snmp_engine):
-        if not self._object_identity:
-            self._create_object_identity()
-            self._object_identity.resolveWithMib(CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine))
-        return self._object_identity
+        return self.get_object_type(snmp_engine)[0].getOid()
+
+    def get_object_type(self, snmp_engine):
+        mib_view = CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine)
+        object_identity = self._create_object_identity()
+        object_identity.resolveWithMib(mib_view)
+        object_type = ObjectType(object_identity)
+        object_type.resolveWithMib(mib_view)
+        return object_type
 
 
 class SnmpSetRawOid(SnmpRawOid):
@@ -60,10 +76,11 @@ class SnmpSetRawOid(SnmpRawOid):
         super(SnmpSetRawOid, self).__init__(oid, asn_mib_sources, custom_mib_sources)
         self.value = value
 
-    def get_oid(self, snmp_engine):
-        self._create_object_identity()
-        object_type = ObjectType(self._object_identity, self.value)
-        object_type.resolveWithMib(CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine))
+    def get_object_type(self, snmp_engine):
+        mib_view = CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine)
+        object_identity = self._create_object_identity()
+        object_type = ObjectType(object_identity, self.value)
+        object_type.resolveWithMib(mib_view)
         return object_type
 
 
@@ -72,8 +89,9 @@ class SnmpSetMibName(SnmpMibOid):
         super(SnmpSetMibName, self).__init__(mib_name, mib_id, index, asn_mib_sources, custom_mib_sources)
         self.value = value
 
-    def get_oid(self, snmp_engine):
-        self._create_object_identity()
-        object_type = ObjectType(self._object_identity, self.value)
-        object_type.resolveWithMib(CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine))
+    def get_object_type(self, snmp_engine):
+        mib_view = CommandGeneratorVarBinds().getMibViewController(snmpEngine=snmp_engine)
+        object_identity = self._create_object_identity()
+        object_type = ObjectType(object_identity, self.value)
+        object_type.resolveWithMib(mib_view)
         return object_type
