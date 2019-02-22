@@ -4,7 +4,7 @@ from pysnmp.entity import config
 from pysnmp.carrier.asynsock.dgram import udp, udp6
 from ipaddress import IPv6Address, ip_address
 
-from cloudshell.snmp.core.error.snmp_errors import GeneralSNMPError
+from cloudshell.snmp.core.error.snmp_errors import InitializeSNMPException
 from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 
 
@@ -23,9 +23,9 @@ class SnmpTransport(object):
                                        socket.AF_INET, socket.SOCK_DGRAM,
                                        socket.IPPROTO_UDP)[0][4][:2]
             except socket.gaierror:
-                raise GeneralSNMPError("Failed to validate {} hostname".format(self._snmp_parameters.ip), self._logger)
+                raise InitializeSNMPException("Failed to validate {} hostname".format(self._snmp_parameters.ip), self._logger)
         else:
-            raise GeneralSNMPError("Failed to validate {} hostname".format(self._snmp_parameters.ip), self._logger)
+            raise InitializeSNMPException("Failed to validate {} hostname".format(self._snmp_parameters.ip), self._logger)
 
         ip = ip_address(unicode(self._snmp_parameters.ip))
         if isinstance(ip, IPv6Address):

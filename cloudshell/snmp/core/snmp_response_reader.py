@@ -5,6 +5,7 @@ from pysnmp.proto import rfc1905, rfc1902
 from pysnmp.proto.errind import RequestTimedOut
 
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
+from cloudshell.snmp.core.error.snmp_errors import ReadSNMPException
 
 
 class SnmpResponseReader(object):
@@ -25,16 +26,17 @@ class SnmpResponseReader(object):
     def cb_fun(self, snmp_engine, send_request_handle, error_indication,
                error_status, error_index, var_bind_table, cb_ctx):
         if error_status and error_status != 2 or error_indication:
-            self._logger.error('Remote SNMP error %s' % (error_indication or error_status.prettyPrint()))
-            return
+            message = "Remote SNMP error {}".format(error_indication or error_status.prettyPrint())
+            self._logger.error(message)
+            raise ReadSNMPException(message)
         stop_flag = self._parse_var_binds(var_bind_table=var_bind_table)
         return not stop_flag
 
     def cb_walk_fun(self, snmp_engine, send_request_handle, error_indication,
                     error_status, error_index, var_bind_table, cb_ctx):
-        # if self.cb_ctx['is_snmp_timeout'] and self._get_bulk_flag:
-        #     self.cb_ctx["get_bulk_flag"] = True
-        #     self.cb_ctx['is_snmp_timeout'] = False
+        if self.cb_ctx['is_snmp_timeout'] and self._get_bulk_flag:
+            self.cb_ctx["get_bulk_flag"] = True
+            self.cb_ctx['is_snmp_timeout'] = False
 
         if isinstance(error_indication, RequestTimedOut):
             bulk_half_rep_flag = self.cb_ctx.get("get_bulk_retry_half_repetitions_flag")
@@ -63,13 +65,13 @@ class SnmpResponseReader(object):
                 # fuzzy logic of walking a broken OID
                 if len(next_oid) < 4:
                     pass
-                # elif (self._retry_count - self.cb_ctx[
-                #     'retries']) * 10 / self._retry_count > 5:
-                #     next_oid = next_oid[:-2] + (next_oid[-2] + 1,)
-                # elif next_oid[-1]:
-                #     next_oid = next_oid[:-1] + (next_oid[-1],)
-                # else:
-                #     next_oid = next_oid[:-2] + (next_oid[-2] + 1, 0)
+                if not self.cb_ctx.get('is_snmp_timeout'):
+                    if (self._retry_count - self.cb_ctx['retries']) * 10 / self._retry_count > 5:
+                        next_oid = next_oid[:-2] + (next_oid[-2] + 1,)
+                    elif next_oid[-1]:
+                        next_oid = next_oid[:-1] + (next_oid[-1],)
+                    else:
+                        next_oid = next_oid[:-2] + (next_oid[-2] + 1, 0)
 
                 self.cb_ctx['retries'] -= 1
                 self.cb_ctx['lastOID'] = next_oid

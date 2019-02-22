@@ -1,6 +1,21 @@
 
 
-class GeneralSNMPError(Exception):
-    def __init__(self, message, logger):
-        self.message = message
-        logger.exception(self)
+class SNMPException(Exception):
+    """
+    Basic Snmp exception
+    """
+    pass
+
+
+class ReadSNMPException(SNMPException):
+    """
+    Snmp response read exception
+    """
+    pass
+
+
+class InitializeSNMPException(Exception):
+    """
+    Snmp initialize exception
+    """
+    pass

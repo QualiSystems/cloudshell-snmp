@@ -61,7 +61,7 @@ class ReadSnmpService(object):
         # ToDo do we really need to check index and set it to 0 it if it's None?
         if hasattr(snmp_oid, "index") and not snmp_oid.index:
             snmp_oid.index = 0
-        oid = snmp_oid.get_object_type(self._snmp_engine)
+        oid = snmp_oid.get_object_type(self._snmp_engine)[0]
 
         service = self._create_response_service()
         service.send_get_var_binds(oid=oid)
@@ -72,7 +72,7 @@ class ReadSnmpService(object):
 
         result = None
         if service.result:
-            result = service.result[-1]
+            result = list(service.result)[-1]
 
         return result
 

@@ -26,6 +26,7 @@ class WriteSnmpService(ReadSnmpService):
 
         :rtype: list of SnmpResponse
         """
+
         snmp_set_oids_list = snmp_set_oids
         if not isinstance(snmp_set_oids_list, (list, tuple)):
             snmp_set_oids_list = [snmp_set_oids]
