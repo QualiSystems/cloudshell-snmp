@@ -14,7 +14,7 @@ class SnmpTransport(object):
         self._logger = logger
 
     def add_udp_endpoint(self, snmp_engine, snmp_timeout=SNMP_TIMEOUT,
-                          snmp_retry_count=SNMP_RETRIES_COUNT):
+                         snmp_retry_count=SNMP_RETRIES_COUNT):
         if self._snmp_parameters.ip:
             try:
                 agent_udp_endpoint = \
@@ -23,9 +23,11 @@ class SnmpTransport(object):
                                        socket.AF_INET, socket.SOCK_DGRAM,
                                        socket.IPPROTO_UDP)[0][4][:2]
             except socket.gaierror:
-                raise InitializeSNMPException("Failed to validate {} hostname".format(self._snmp_parameters.ip), self._logger)
+                raise InitializeSNMPException("Failed to validate {} hostname".format(self._snmp_parameters.ip),
+                                              self._logger)
         else:
-            raise InitializeSNMPException("Failed to validate {} hostname".format(self._snmp_parameters.ip), self._logger)
+            raise InitializeSNMPException("Failed to validate {} hostname".format(self._snmp_parameters.ip),
+                                          self._logger)
 
         ip = ip_address(unicode(self._snmp_parameters.ip))
         if isinstance(ip, IPv6Address):

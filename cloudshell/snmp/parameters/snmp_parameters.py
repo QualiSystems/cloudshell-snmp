@@ -21,7 +21,7 @@ class SnmpParameters(object):
         pass
 
 
-class SNMPV2ReadParameters(SnmpParameters):
+class SNMPV2Parameters(SnmpParameters):
     def __init__(self, ip, snmp_read_community, version, port=161):
         """
         Represents parameters for an SMNPV2 connection
@@ -32,7 +32,6 @@ class SNMPV2ReadParameters(SnmpParameters):
         SnmpParameters.__init__(self, ip=ip, port=port)
         self._version = version
         self.snmp_community = snmp_read_community
-        self._can_write = False
 
     @property
     def security(self):
@@ -48,18 +47,6 @@ class SNMPV2ReadParameters(SnmpParameters):
         if "2" in self._version:
             version = 1
         return version
-
-
-class SNMPV2WriteParameters(SNMPV2ReadParameters):
-    def __init__(self, ip, snmp_write_community, version, port=161):
-        """
-        Represents parameters for an SMNPV2 connection
-        :param str ip: The device IP
-        :param str snmp_write_community: SNMP Write community
-        :param int port: SNMP port to use
-        """
-        super(SNMPV2WriteParameters, self).__init__(ip, snmp_write_community, version, port)
-        self._can_write = True
 
 
 class SNMPV3Parameters(SnmpParameters):
