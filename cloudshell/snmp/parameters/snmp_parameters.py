@@ -22,7 +22,7 @@ class SnmpParameters(object):
 
 
 class SNMPV2Parameters(SnmpParameters):
-    def __init__(self, ip, snmp_read_community, version, port=161):
+    def __init__(self, ip, snmp_community, version, port=161):
         """
         Represents parameters for an SMNPV2 connection
         :param str ip: The device IP
@@ -31,7 +31,7 @@ class SNMPV2Parameters(SnmpParameters):
         """
         SnmpParameters.__init__(self, ip=ip, port=port)
         self._version = version
-        self.snmp_community = snmp_read_community
+        self.snmp_community = snmp_community
 
     @property
     def security(self):
