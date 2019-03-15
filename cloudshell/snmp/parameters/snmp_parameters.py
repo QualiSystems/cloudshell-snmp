@@ -4,6 +4,11 @@ from cloudshell.snmp.core.tools.snmp_constants import AUTH_PROTOCOL_MAP, PRIV_PR
 
 
 class SnmpParameters(object):
+    class SnmpVersion:
+        V1 = 0
+        V2 = 1
+        V3 = 3
+
     def __init__(self, ip, port=161):
         self.ip = ip
         self.port = port
@@ -26,7 +31,7 @@ class SNMPV2Parameters(SnmpParameters):
         """
         Represents parameters for an SMNPV2 connection
         :param str ip: The device IP
-        :param str snmp_read_community: SNMP Read community
+        :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
         """
         SnmpParameters.__init__(self, ip=ip, port=port)
@@ -43,9 +48,9 @@ class SNMPV2Parameters(SnmpParameters):
 
     @property
     def snmp_version(self):
-        version = 0
+        version = SnmpParameters.SnmpVersion.V1
         if "2" in self._version:
-            version = 1
+            version = SnmpParameters.SnmpVersion.V2
         return version
 
 
@@ -86,4 +91,4 @@ class SNMPV3Parameters(SnmpParameters):
 
     @property
     def snmp_version(self):
-        return 3
+        return SnmpParameters.SnmpVersion.V3
