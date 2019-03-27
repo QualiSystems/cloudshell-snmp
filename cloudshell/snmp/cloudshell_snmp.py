@@ -5,7 +5,6 @@ from cloudshell.snmp.core.tools.snmp_security import SnmpSecurity
 from cloudshell.snmp.core.tools.snmp_trasnport import SnmpTransport
 from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 from cloudshell.snmp.core.snmp_context_manager import SnmpContextManager
-from cloudshell.snmp.parameters.snmp_parameters import SNMPV2ReadParameters
 
 
 class Snmp(object):
@@ -27,7 +26,7 @@ class Snmp(object):
                                   get_bulk_flag=get_bulk_flag
                                   )
 
-    def _get_snmp_engine(self, snmp_timeout=SNMP_TIMEOUT, snmp_retry_count=SNMP_RETRIES_COUNT):
+    def _get_snmp_engine(self, snmp_timeout, snmp_retry_count):
         snmp_engine = engine.SnmpEngine()
 
         config.addTargetParams(snmp_engine, 'pms', self._snmp_parameters.user, self._snmp_parameters.security,

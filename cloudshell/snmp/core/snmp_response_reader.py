@@ -9,6 +9,8 @@ from cloudshell.snmp.core.error.snmp_errors import ReadSNMPException
 
 
 class SnmpResponseReader(object):
+    TAGS_TO_SKIP = [rfc1905.NoSuchObject.tagSet, rfc1905.NoSuchInstance.tagSet, rfc1905.EndOfMibView.tagSet]
+
     def __init__(self, snmp_engine, logger, cb_ctx=None, context_id=None, context_name="",
                  get_bulk_flag=False, get_bulk_repetitions=25, retry_count=2):
         self._snmp_engine = snmp_engine
@@ -116,14 +118,11 @@ class SnmpResponseReader(object):
         return stop_flag
 
     def _parse_response(self, oid, value):
-        stop_flag = False
-        if self._stop_oid and oid >= self._stop_oid:
-            stop_flag = True
-        if (value is None or
-                value.tagSet in (rfc1905.NoSuchObject.tagSet,
-                                 rfc1905.NoSuchInstance.tagSet,
-                                 rfc1905.EndOfMibView.tagSet)):
-            stop_flag = True
+        if self._stop_oid \
+                and oid >= self._stop_oid \
+                or value is None \
+                or value.tagSet in self.TAGS_TO_SKIP:
+            return True
 
         if value.tagSet == rfc1902.Integer32.tagSet:
             value = rfc1902.Integer32(value)
@@ -134,11 +133,9 @@ class SnmpResponseReader(object):
         elif value.tagSet == rfc1902.Bits.tagSet:
             value = rfc1902.OctetString(value)
 
-        if not stop_flag:
-            response = SnmpResponse(oid, value, snmp_engine=self._snmp_engine, logger=self._logger)
-            # self.result.append(response)
-            self.result.add(response)
-        return stop_flag
+        response = SnmpResponse(oid, value, snmp_engine=self._snmp_engine, logger=self._logger)
+        self.result.add(response)
+        return False
 
     def send_walk_var_binds(self, oid, stop_oid=None):
         cmd_gen = cmdgen.NextCommandGenerator()

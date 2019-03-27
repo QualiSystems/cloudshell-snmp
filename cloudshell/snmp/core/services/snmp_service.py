@@ -35,7 +35,7 @@ class SnmpService(object):
         mib_builder.setMibSources(*mib_sources)
 
     def load_mib(self, mib_list):
-        """ Load all MIBs provided in incoming mib_list one by one
+        """Load all MIBs provided in incoming mib_list one by one
 
         :param mib_list: List of MIB names, for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
@@ -101,7 +101,7 @@ class SnmpService(object):
         # ToDo do we really need to check index and set it to 0 it if it's None?
         if hasattr(snmp_oid, "index") and not snmp_oid.index:
             snmp_oid.index = 0
-        oid = snmp_oid.get_object_type(self._snmp_engine)[0]
+        oid = snmp_oid.get_oid(self._snmp_engine)
 
         service = self._create_response_service()
         service.send_get_var_binds(oid=oid)
@@ -219,7 +219,7 @@ class SnmpService(object):
             self._snmp_engine.transportDispatcher.runDispatcher()
         except Exception as e:
             self._logger.debug("Error retrieving snmp response ", exc_info=1)
-            pass
+            raise
 
     def _check_error(self, cb_ctx, result):
         if cb_ctx.get("is_snmp_timeout") and not result:

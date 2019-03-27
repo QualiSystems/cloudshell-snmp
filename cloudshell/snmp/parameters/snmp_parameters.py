@@ -5,6 +5,9 @@ from cloudshell.snmp.core.tools.snmp_constants import AUTH_PROTOCOL_MAP, PRIV_PR
 
 class SnmpParameters(object):
     class SnmpVersion:
+        def __init__(self):
+            pass
+
         V1 = 0
         V2 = 1
         V3 = 3

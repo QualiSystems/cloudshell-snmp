@@ -1,12 +1,11 @@
 from pysnmp.hlapi import usmNoPrivProtocol, usmDESPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, \
     usmAesCfb192Protocol, usmAesCfb256Protocol, usmNoAuthProtocol, usmHMACMD5AuthProtocol, usmHMACSHAAuthProtocol
 
-
 SNMP_RETRIES_COUNT = 2
 
 MAX_BULK_REPETITIONS = 25
 
-SNMP_TIMEOUT = 3000
+SNMP_TIMEOUT = 1000
 
 SNMP_DEFAULT_PORT = 161
 
