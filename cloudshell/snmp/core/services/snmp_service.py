@@ -2,10 +2,14 @@ import os
 import time
 
 from pyasn1.type import univ
+from pyasn1.type.univ import NoValue
 from pysnmp.proto.errind import requestTimedOut
+from pysnmp.proto.rfc1905 import NoSuchObject
 from pysnmp.smi import builder
 
 from cloudshell.snmp.core.domain.quali_mib_table import QualiMibTable
+from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
+from cloudshell.snmp.core.error.snmp_errors import ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 
 
@@ -86,6 +90,14 @@ class SnmpService(object):
         self._check_error(service.cb_ctx, service.result)
 
         return service.result
+
+    def get_property(self, snmp_oid):
+        response = SnmpResponse(snmp_oid.get_oid(self._snmp_engine), univ.Null(), snmp_engine=self._snmp_engine, logger=self._logger)
+        try:
+            return self.get(snmp_oid) or response
+        except ReadSNMPException as e:
+            self._logger.debug(e, exc_info=True)
+        return response
 
     def get(self, snmp_oid):
         """ Get snmp operation. Load appropriate oid value from the device.

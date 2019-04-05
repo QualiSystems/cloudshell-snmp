@@ -52,7 +52,7 @@ class SnmpMibOid(BaseSnmpOid):
     def _create_object_identity(self):
         object_identity = ObjectIdentity(*(self._mib_name, self._mib_id))
         if self.index is not None:
-            object_identity = ObjectIdentity(*(self._mib_name, self._mib_id, self.index))
+            object_identity = ObjectIdentity(*((self._mib_name, self._mib_id) + tuple(str(self.index).split("."))))
         if self._asn_mib_sources:
             object_identity.addAsn1MibSource(self._asn_mib_sources)
         if self._custom_mib_sources:
@@ -60,6 +60,7 @@ class SnmpMibOid(BaseSnmpOid):
         return object_identity
 
     def get_oid(self, snmp_engine):
+
         return self.get_object_type(snmp_engine)[0].getOid()
 
     def get_object_type(self, snmp_engine):

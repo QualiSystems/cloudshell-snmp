@@ -110,7 +110,7 @@ class SnmpResponseReader(object):
             if isinstance(var_bind_row, tuple):
                 var_bind_row = [var_bind_row]
             if not isinstance(var_bind_row, list):
-                self._logger.debug("Failed to parse snmp response, unknown type: {}".format(type(var_bind_row)))
+                self._logger.debug("Failed to parse snmp response, unknown type: '{}'".format(type(var_bind_row)))
             for oid, value in var_bind_row:
                 stop_flag = self._parse_response(oid, value)
                 if stop_flag:
@@ -118,13 +118,13 @@ class SnmpResponseReader(object):
         return stop_flag
 
     def _parse_response(self, oid, value):
-        if self._stop_oid \
-                and oid >= self._stop_oid \
-                or value is None \
-                or value.tagSet in self.TAGS_TO_SKIP:
+        # stop_flag = False
+        if self._stop_oid and oid >= self._stop_oid:
+            if value is None or value.tagSet in self.TAGS_TO_SKIP:
+                self._logger.debug("Error retrieving oid '{}', value is '{}'".format(oid, value))
             return True
 
-        if value.tagSet == rfc1902.Integer32.tagSet:
+        elif value.tagSet == rfc1902.Integer32.tagSet:
             value = rfc1902.Integer32(value)
 
         elif value.tagSet == rfc1902.Unsigned32.tagSet:

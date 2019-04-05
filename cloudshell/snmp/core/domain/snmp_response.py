@@ -25,7 +25,6 @@ class SnmpResponse(object):
 
     @property
     def oid(self):
-
         return self.object_type[0].getOid()
 
     @property
@@ -51,6 +50,8 @@ class SnmpResponse(object):
         value = str(self.object_type[1].prettyPrint())
         if value.lower().startswith("0x"):
             value = str(self._raw_value)
+        if "no value" in value:
+            value = ""
         return value
 
     def _get_oid(self):
