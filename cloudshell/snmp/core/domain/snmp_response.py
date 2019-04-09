@@ -47,6 +47,9 @@ class SnmpResponse(object):
 
     @property
     def value(self):
+        value_obj = self.object_type[1]
+        if not hasattr(value_obj, "prettyPrint"):
+            return ""
         value = str(self.object_type[1].prettyPrint())
         if value.lower().startswith("0x"):
             value = str(self._raw_value)

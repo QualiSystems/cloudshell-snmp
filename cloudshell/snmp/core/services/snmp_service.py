@@ -24,7 +24,7 @@ class SnmpService(object):
         self._context_name = context_name
         self._retries = retries
         self._get_bulk_flag = get_bulk_flag
-        path_to_mibs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", 'mibs')
+        path_to_mibs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "mibs")
         self.update_mib_sources(path_to_mibs)
 
     def update_mib_sources(self, mib_folder_path):
@@ -92,7 +92,10 @@ class SnmpService(object):
         return service.result
 
     def get_property(self, snmp_oid):
-        response = SnmpResponse(snmp_oid.get_oid(self._snmp_engine), univ.Null(), snmp_engine=self._snmp_engine, logger=self._logger)
+        response = SnmpResponse(snmp_oid.get_oid(self._snmp_engine),
+                                univ.Null(),
+                                snmp_engine=self._snmp_engine,
+                                logger=self._logger)
         try:
             return self.get(snmp_oid) or response
         except ReadSNMPException as e:

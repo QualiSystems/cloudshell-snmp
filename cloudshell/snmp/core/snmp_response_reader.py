@@ -106,6 +106,8 @@ class SnmpResponseReader(object):
 
     def _parse_var_binds(self, var_bind_table):
         stop_flag = False
+        if not var_bind_table:
+            return False
         for var_bind_row in var_bind_table:
             if isinstance(var_bind_row, tuple):
                 var_bind_row = [var_bind_row]
