@@ -131,6 +131,32 @@ class SnmpService(object):
 
         return result
 
+    def get_next(self, snmp_oid):
+        """ Get snmp operation. Load appropriate oid value from the device.
+
+        :param snmp_oid: Single SnmpMibOid or SnmpRawOid object.
+            For example, an object to get sysContact can by any of the following:
+            SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)
+            SnmpMibOid('SNMPv2-MIB', 'sysContact')
+            SnmpRawOid('1.3.6.1.2.1.1.4.0')
+        :return: SnmpResponse
+        """
+
+        # ToDo do we really need to check index and set it to 0 it if it's None?
+        if hasattr(snmp_oid, "index") and not snmp_oid.index:
+            snmp_oid.index = 0
+        oid = snmp_oid.get_oid(self._snmp_engine)
+
+        service = self._create_response_service()
+        service.send_walk_var_binds(oid=oid)
+
+        self._start_dispatcher()
+
+        self._check_error(service.cb_ctx, service.result)
+
+        if service.result:
+            return list(service.result)[-1]
+
     def get_list(self, snmp_oid_list):
         """ Get snmp operation. Load list of appropriate oid values from the device.
 
