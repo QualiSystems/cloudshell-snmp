@@ -50,7 +50,6 @@ class SnmpResponseReader(object):
 
         get_bulk_flag = self.cb_ctx.get("get_bulk_flag", self._get_bulk_flag)
         if error_indication and not self.cb_ctx['retries']:
-            self.cb_ctx['errors'] += 1
             self._logger.debug('SNMP Engine error: %s' % error_indication)
             return
         # SNMPv1 response may contain noSuchName error *and* SNMPv2c exception,
@@ -90,8 +89,6 @@ class SnmpResponseReader(object):
                     self.send_bulk_var_binds(oid=next_oid, get_bulk_repetitions=get_bulk_repetitions)
                 else:
                     self.send_walk_var_binds(oid=next_oid)
-
-            self.cb_ctx['errors'] += 1
 
             return
 

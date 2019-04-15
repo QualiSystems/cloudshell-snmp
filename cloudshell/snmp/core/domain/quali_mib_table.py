@@ -18,7 +18,6 @@ class QualiMibTable(dict):
 
         super(QualiMibTable, self).__init__(*args, **kwargs)
         self._name = name
-        self._prefix = name[:-len('Table')]
 
     def get_rows(self, *indexes):
         """
@@ -35,7 +34,7 @@ class QualiMibTable(dict):
         :return: a partial table containing only the requested columns.
         """
 
-        names = [self._prefix + n for n in names]
+        names = [n for n in names]
         return QualiMibTable(self._name, OrderedDict((i, {n: v for n, v in values.items() if
                                                           n in names}) for
                                                      i, values in self.items()))
@@ -48,7 +47,6 @@ class QualiMibTable(dict):
             the requested column.
         """
 
-        name = self._prefix + name
         return QualiMibTable(self._name, OrderedDict((i, _values) for i, _values in self.items() if
                                                      _values[name] in values))
 
@@ -59,7 +57,6 @@ class QualiMibTable(dict):
         """
 
         column = self.get_columns(name)
-        name = self._prefix + name
         return QualiMibTable(self._name, sorted(column.items(), key=lambda t: int(t[1][name])))
 
     @staticmethod
