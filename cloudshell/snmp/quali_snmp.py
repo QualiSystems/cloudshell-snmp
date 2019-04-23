@@ -93,7 +93,7 @@ class QualiSnmp(object):
     """
 
     var_binds = ()
-    DEFAULT_TIMEOUT = 1
+    DEFAULT_TIMEOUT = 10
 
     """ raw output from PySNMP command. """
 
