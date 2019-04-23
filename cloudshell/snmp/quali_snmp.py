@@ -10,7 +10,9 @@ import time
 import re
 
 import os
-from pysnmp.hlapi import UsmUserData
+from pysnmp.hlapi import UsmUserData, usmNoAuthProtocol, usmHMACMD5AuthProtocol, usmHMACSHAAuthProtocol, \
+    usmNoPrivProtocol, usmDESPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, usmAesCfb192Protocol, \
+    usmAesCfb256Protocol
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.error import PySnmpError
 from pysnmp.smi import builder, view
@@ -96,6 +98,16 @@ class QualiSnmp(object):
     DEFAULT_TIMEOUT = 1
 
     """ raw output from PySNMP command. """
+    AUTH_PROTOCOL_MAP = {SNMPV3Parameters.AUTH_NO_AUTH: usmNoAuthProtocol,
+                         SNMPV3Parameters.AUTH_MD5: usmHMACMD5AuthProtocol,
+                         SNMPV3Parameters.AUTH_SHA: usmHMACSHAAuthProtocol}
+
+    PRIV_PROTOCOL_MAP = {SNMPV3Parameters.PRIV_NO_PRIV: usmNoPrivProtocol,
+                         SNMPV3Parameters.PRIV_DES: usmDESPrivProtocol,
+                         SNMPV3Parameters.PRIV_3DES: usm3DESEDEPrivProtocol,
+                         SNMPV3Parameters.PRIV_AES128: usmAesCfb128Protocol,
+                         SNMPV3Parameters.PRIV_AES192: usmAesCfb192Protocol,
+                         SNMPV3Parameters.PRIV_AES256: usmAesCfb256Protocol}
 
     def __init__(self, snmp_parameters, logger, snmp_error_values=None, timeout=DEFAULT_TIMEOUT):
         """ Initialize SNMP environment.
@@ -123,7 +135,7 @@ class QualiSnmp(object):
     def initialize_snmp(self, snmp_parameters):
         """Create snmp, using provided version user details or community name
 
-        :param SNMPParameters snmp_parameters: snmp parameters
+        :param SNMPV3Parameters snmp_parameters: snmp parameters
 
         """
 
@@ -138,8 +150,10 @@ class QualiSnmp(object):
             self.security = UsmUserData(userName=snmp_v3_param.snmp_user,
                                         authKey=snmp_v3_param.snmp_password or None,
                                         privKey=snmp_v3_param.snmp_private_key or None,
-                                        authProtocol=snmp_v3_param.auth_protocol,
-                                        privProtocol=snmp_v3_param.private_key_protocol)
+                                        authProtocol=self.AUTH_PROTOCOL_MAP.get(snmp_v3_param.auth_protocol,
+                                                                                usmNoAuthProtocol),
+                                        privProtocol=self.PRIV_PROTOCOL_MAP.get(snmp_v3_param.private_key_protocol,
+                                                                                usmNoPrivProtocol))
             self.logger.info('Snmp v3 handler created')
         else:
             if isinstance(snmp_parameters, SNMPV2ReadParameters):

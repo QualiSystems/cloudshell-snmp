@@ -31,7 +31,7 @@ class TestQualiSnmpInit(TestCase):
 
         # Act
         snmp_v3_params = SNMPV3Parameters(ip=ip, snmp_user=snmp_user, snmp_password=snmp_password,
-                                          snmp_private_key=snmp_private_key)
+                                          snmp_private_key=snmp_private_key, auth_protocol=SNMPV3Parameters.AUTH_MD5)
         test_quali_snmp = quali_snmp.QualiSnmp(snmp_parameters=snmp_v3_params, logger=self._logger)
 
         # Assert
