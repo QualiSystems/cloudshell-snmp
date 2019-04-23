@@ -52,7 +52,10 @@ class TestQualiSnmpInit(TestCase):
 
         # Assert
         test_mock.assert_called_once()
-        cmdgen_mock.UdpTransportTarget.assert_called_once_with((self.SNMP_V3_PARAMS.ip, self.SNMP_V3_PARAMS.port))
+        cmdgen_mock.UdpTransportTarget.assert_called_once_with(
+            (self.SNMP_V3_PARAMS.ip, self.SNMP_V3_PARAMS.port),
+            quali_snmp.QualiSnmp.DEFAULT_TIMEOUT,
+        )
         usm_mock.assert_called_once_with(userName=self.SNMP_V3_PARAMS.snmp_user,
                                          authKey=self.SNMP_V3_PARAMS.snmp_password,
                                          privKey=self.SNMP_V3_PARAMS.snmp_private_key,
@@ -73,8 +76,10 @@ class TestQualiSnmpInit(TestCase):
 
         # Assert
         test_mock.assert_called_once()
-        cmdgen_mock.UdpTransportTarget.assert_called_once_with((self.SNMP_V2_PARAMS.ip.split(":")[0],
-                                                                self.SNMP_V2_PARAMS.port))
+        cmdgen_mock.UdpTransportTarget.assert_called_once_with(
+            (self.SNMP_V2_PARAMS.ip.split(":")[0], self.SNMP_V2_PARAMS.port),
+            quali_snmp.QualiSnmp.DEFAULT_TIMEOUT,
+        )
         cmdgen_mock.CommunityData.assert_called_once_with(self.SNMP_V2_PARAMS.snmp_community)
 
     @patch("cloudshell.snmp.quali_snmp.QualiSnmp.get")

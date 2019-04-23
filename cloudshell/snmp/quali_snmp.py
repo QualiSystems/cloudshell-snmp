@@ -95,6 +95,7 @@ class QualiSnmp(object):
     """
 
     var_binds = ()
+    DEFAULT_TIMEOUT = 10
 
     """ raw output from PySNMP command. """
     AUTH_PROTOCOL_MAP = {SNMPV3Parameters.AUTH_NO_AUTH: usmNoAuthProtocol,
@@ -108,7 +109,7 @@ class QualiSnmp(object):
                          SNMPV3Parameters.PRIV_AES192: usmAesCfb192Protocol,
                          SNMPV3Parameters.PRIV_AES256: usmAesCfb256Protocol}
 
-    def __init__(self, snmp_parameters, logger, snmp_error_values=None):
+    def __init__(self, snmp_parameters, logger, snmp_error_values=None, timeout=DEFAULT_TIMEOUT):
         """ Initialize SNMP environment.
         :param SNMPParameters snmp_parameters: snmp parameters
         """
@@ -123,6 +124,7 @@ class QualiSnmp(object):
         self.is_read_only = False
         self.target = None
         self.security = None
+        self.timeout = timeout
 
         self.initialize_snmp(snmp_parameters)
         self.mib_builder.setMibSources(self.mib_path)
@@ -141,7 +143,7 @@ class QualiSnmp(object):
         ip = snmp_parameters.ip
         if ':' in ip:
             ip = ip.split(':')[0]
-        self.target = cmdgen.UdpTransportTarget((ip, snmp_parameters.port))
+        self.target = cmdgen.UdpTransportTarget((ip, snmp_parameters.port), self.timeout)
         if isinstance(snmp_parameters, SNMPV3Parameters):
             snmp_v3_param = snmp_parameters
             """:type: SNMPV3Parameters"""
