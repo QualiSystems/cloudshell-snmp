@@ -49,9 +49,12 @@ class SnmpResponse(object):
     def value(self):
         if self._raw_value is None:
             return
-        value = str(self.object_type[1])
-        if isinstance(self.object_type[1], ObjectIdentity):
+        if not self.object_type:
+            return
+        if hasattr(self.object_type[1], "prettyPrint"):
             value = self.object_type[1].prettyPrint()
+        else:
+            value = str(self.object_type[1])
         if value.lower().startswith("0x"):
             value = str(self._raw_value)
         return value

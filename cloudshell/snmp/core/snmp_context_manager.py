@@ -1,4 +1,4 @@
-from cloudshell.snmp.core.services.snmp_service import SnmpService
+from cloudshell.snmp.core.snmp_service import SnmpService
 
 
 class SnmpContextManager(object):

@@ -127,6 +127,8 @@ class SnmpService(object):
         """
 
         oid = snmp_oid.get_oid(self._snmp_engine)
+        if hasattr(oid, "index") and not oid.index:
+            oid.index = 0
 
         service = self._create_response_service()
         service.send_get_var_binds(oid=oid)
@@ -149,7 +151,7 @@ class SnmpService(object):
             SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)
             SnmpMibOid('SNMPv2-MIB', 'sysContact')
             SnmpRawOid('1.3.6.1.2.1.1.4.0')
-        :return: SnmpResponse
+        :return: list of SnmpResponse
         """
 
         oid = snmp_oid.get_oid(self._snmp_engine)
@@ -162,7 +164,7 @@ class SnmpService(object):
         self._check_error(service.cb_ctx, service.result)
 
         if service.result:
-            return list(service.result)[-1]
+            return list(service.result)
 
     def get_list(self, snmp_oid_list):
         """ Get snmp operation. Load list of appropriate oid values from the device.
