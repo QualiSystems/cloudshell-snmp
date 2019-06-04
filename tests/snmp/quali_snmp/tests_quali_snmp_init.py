@@ -1,7 +1,7 @@
 from unittest import TestCase
 from mock import MagicMock, patch
 
-import cloudshell.snmp.quali_snmp as quali_snmp
+import cloudshell.snmp.old.quali_snmp as quali_snmp
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2ReadParameters, SNMPV2WriteParameters

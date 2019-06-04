@@ -4,7 +4,7 @@ from pysnmp.entity import config
 from pysnmp.carrier.asynsock.dgram import udp, udp6
 from ipaddress import IPv6Address, ip_address
 
-from cloudshell.snmp.core.error.snmp_errors import InitializeSNMPException
+from cloudshell.snmp.core.snmp_errors import InitializeSNMPException
 from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 
 

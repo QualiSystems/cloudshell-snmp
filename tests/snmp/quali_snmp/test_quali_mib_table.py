@@ -1,5 +1,5 @@
 from unittest import TestCase
-from cloudshell.snmp.quali_snmp import QualiMibTable
+from cloudshell.snmp.old.quali_snmp import QualiMibTable
 
 
 class TestQualiMibTableInit(TestCase):

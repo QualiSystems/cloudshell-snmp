@@ -1,13 +1,13 @@
 
 
-class SNMPException(Exception):
+class GeneralSNMPException(Exception):
     """
     Basic Snmp exception
     """
     pass
 
 
-class ReadSNMPException(SNMPException):
+class ReadSNMPException(GeneralSNMPException):
     """
     Snmp response read exception
     """
@@ -17,5 +17,12 @@ class ReadSNMPException(SNMPException):
 class InitializeSNMPException(Exception):
     """
     Snmp initialize exception
+    """
+    pass
+
+
+class TranslateSNMPException(GeneralSNMPException):
+    """
+    Snmp response read exception
     """
     pass

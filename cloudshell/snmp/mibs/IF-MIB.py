@@ -73,7 +73,7 @@ if mibBuilder.loadTexts: ifIndex.setDescription(
     "is recommended that values are assigned contiguously\n"
     "starting from 1.  The value for each interface sub-layer\n"
     "must remain constant at least from one re-initialization of\n"
-    "the entity's network management system to the next re-\n"
+    "the base_entity's network management system to the next re-\n"
     "initialization.")
 ifDescr = MibTableColumn((1, 3, 6, 1, 2, 1, 2, 2, 1, 2),
                          DisplayString().subtype(subtypeSpec=ValueSizeConstraint(0, 255))).setMaxAccess("readonly")
@@ -356,7 +356,7 @@ if mibBuilder.loadTexts: ifTestCode.setDescription(
     "This object contains a code which contains more specific\ninformation on the test result, for example an error-code\nafter a failed test.  Error codes and other values this\nobject may take are specific to the type of interface and/or\ntest.  The value may have the semantics of either the\nAutonomousType or InstancePointer textual conventions as\ndefined in RFC 2579.  The identifier:\n\n    testCodeUnknown  OBJECT IDENTIFIER ::= { 0 0 }\n\nis defined for use if no additional result code is\navailable.")
 ifTestOwner = MibTableColumn((1, 3, 6, 1, 2, 1, 31, 1, 3, 1, 6), OwnerString()).setMaxAccess("readwrite")
 if mibBuilder.loadTexts: ifTestOwner.setDescription(
-    "The entity which currently has the 'ownership' required to\ninvoke a test on this interface.")
+    "The base_entity which currently has the 'ownership' required to\ninvoke a test on this interface.")
 ifRcvAddressTable = MibTable((1, 3, 6, 1, 2, 1, 31, 1, 4))
 if mibBuilder.loadTexts: ifRcvAddressTable.setDescription(
     "This table contains an entry for each address (broadcast,\nmulticast, or uni-cast) for which the system will receive\npackets/frames on a particular interface, except as follows:\n\n- for an interface operating in promiscuous mode, entries\nare only required for those addresses for which the system\nwould receive frames were it not operating in promiscuous\nmode.\n\n- for 802.5 functional addresses, only one entry is\nrequired, for the address which has the functional address\nbit ANDed with the bit mask of all functional addresses for\nwhich the interface will accept frames.\n\nA system is normally able to use any unicast address which\ncorresponds to an entry in this table as a source address.")
@@ -398,11 +398,11 @@ ifXEntry.setIndexNames(*ifEntry.getIndexNames())
 linkDown = NotificationType((1, 3, 6, 1, 6, 3, 1, 1, 5, 3)).setObjects(
     *(("IF-MIB", "ifIndex"), ("IF-MIB", "ifAdminStatus"), ("IF-MIB", "ifOperStatus"),))
 if mibBuilder.loadTexts: linkDown.setDescription(
-    "A linkDown trap signifies that the SNMP entity, acting in\nan agent role, has detected that the ifOperStatus object for\none of its communication links is about to enter the down\nstate from some other state (but not from the notPresent\nstate).  This other state is indicated by the included value\nof ifOperStatus.")
+    "A linkDown trap signifies that the SNMP base_entity, acting in\nan agent role, has detected that the ifOperStatus object for\none of its communication links is about to enter the down\nstate from some other state (but not from the notPresent\nstate).  This other state is indicated by the included value\nof ifOperStatus.")
 linkUp = NotificationType((1, 3, 6, 1, 6, 3, 1, 1, 5, 4)).setObjects(
     *(("IF-MIB", "ifIndex"), ("IF-MIB", "ifAdminStatus"), ("IF-MIB", "ifOperStatus"),))
 if mibBuilder.loadTexts: linkUp.setDescription(
-    "A linkUp trap signifies that the SNMP entity, acting in an\nagent role, has detected that the ifOperStatus object for\none of its communication links left the down state and\ntransitioned into some other state (but not into the\nnotPresent state).  This other state is indicated by the\nincluded value of ifOperStatus.")
+    "A linkUp trap signifies that the SNMP base_entity, acting in an\nagent role, has detected that the ifOperStatus object for\none of its communication links left the down state and\ntransitioned into some other state (but not into the\nnotPresent state).  This other state is indicated by the\nincluded value of ifOperStatus.")
 
 # Groups
 

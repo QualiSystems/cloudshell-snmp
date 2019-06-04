@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from mock import patch, MagicMock
 
-from cloudshell.snmp.quali_snmp_cached import QualiSnmpCached
+from cloudshell.snmp.old.quali_snmp_cached import QualiSnmpCached
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters
 
 

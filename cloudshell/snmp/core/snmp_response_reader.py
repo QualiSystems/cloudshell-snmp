@@ -5,7 +5,7 @@ from pysnmp.proto import rfc1905, rfc1902
 from pysnmp.proto.errind import RequestTimedOut
 
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
-from cloudshell.snmp.core.error.snmp_errors import ReadSNMPException
+from cloudshell.snmp.core.snmp_errors import ReadSNMPException
 
 
 class SnmpResponseReader(object):
@@ -131,11 +131,11 @@ class SnmpResponseReader(object):
 
                 # initiate another SNMP walk iteration
                 if get_bulk_flag:
-                    self.send_bulk_var_binds(
+                    self._send_bulk_var_binds(
                         oid=next_oid, get_bulk_repetitions=get_bulk_repetitions
                     )
                 else:
-                    self.send_walk_var_binds(oid=next_oid)
+                    self._send_walk_var_binds(oid=next_oid)
 
             return
 
@@ -191,10 +191,16 @@ class SnmpResponseReader(object):
         self.result.add(response)
         return False
 
-    def send_walk_var_binds(self, oid, stop_oid=None):
-        cmd_gen = cmdgen.NextCommandGenerator()
+    def send_walk_var_binds(self, oid, stop_oid=None, cb_fun=None):
         if stop_oid and not self._stop_oid:
             self._stop_oid = stop_oid
+
+        self._send_walk_var_binds(oid, cb_fun)
+
+    def _send_walk_var_binds(self, oid, cb_fun=None):
+        cmd_gen = cmdgen.NextCommandGenerator()
+        if not cb_fun:
+            cb_fun = self.cb_walk_fun
 
         cmd_gen.sendVarBinds(
             self._snmp_engine,
@@ -202,14 +208,17 @@ class SnmpResponseReader(object):
             self._context_id,
             self._context_name,
             [(oid, None)],
-            self.cb_walk_fun,
+            cb_fun,
             self.cb_ctx,
         )
 
     def send_bulk_var_binds(self, oid, stop_oid=None, get_bulk_repetitions=None):
-        cmd_gen = cmdgen.BulkCommandGenerator()
         if stop_oid and not self._stop_oid:
             self._stop_oid = stop_oid
+        self._send_bulk_var_binds(oid, get_bulk_repetitions)
+
+    def _send_bulk_var_binds(self, oid, get_bulk_repetitions=None):
+        cmd_gen = cmdgen.BulkCommandGenerator()
 
         cmd_gen.sendVarBinds(
             self._snmp_engine,

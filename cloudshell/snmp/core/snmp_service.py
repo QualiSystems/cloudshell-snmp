@@ -7,7 +7,7 @@ from pysnmp.smi import builder
 
 from cloudshell.snmp.core.domain.quali_mib_table import QualiMibTable
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
-from cloudshell.snmp.core.error.snmp_errors import ReadSNMPException
+from cloudshell.snmp.core.snmp_errors import ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 
 
@@ -31,7 +31,7 @@ class SnmpService(object):
         self._retries = retries
         self._get_bulk_flag = get_bulk_flag
         path_to_mibs = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "..", "mibs"
+            os.path.dirname(os.path.abspath(__file__)), "..", "mibs"
         )
         self.update_mib_file_sources(path_to_mibs)
 
@@ -157,7 +157,10 @@ class SnmpService(object):
         oid = snmp_oid.get_oid(self._snmp_engine)
 
         service = self._create_response_service()
-        service.send_walk_var_binds(oid=oid)
+        stop_oid = "{}{}".format(str(oid)[:-1], int(str(oid)[-1:]) + 1)
+        stop_oid = univ.ObjectIdentifier(stop_oid)
+        service.send_walk_var_binds(oid=oid, stop_oid=stop_oid)
+        # service.send_walk_var_binds(oid=oid, stop_oid=stop_oid, cb_fun=service.cb_fun)
 
         self._start_dispatcher()
 
@@ -165,6 +168,13 @@ class SnmpService(object):
 
         if service.result:
             return list(service.result)
+        # result = []
+        # if service.result:
+        #     for response in service.result:
+        #         if response.mib_id == snmp_oid.mib_id \
+        #                 and snmp_oid.index in response.index:
+        #             result.append(response)
+        # return result
 
     def get_list(self, snmp_oid_list):
         """ Get snmp operation. Load list of appropriate oid values from the device.

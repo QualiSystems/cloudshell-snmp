@@ -1,5 +1,8 @@
+from pysnmp.error import PySnmpError
 from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
+
+from cloudshell.snmp.core.snmp_errors import TranslateSNMPException
 
 
 class SnmpResponse(object):
@@ -46,18 +49,30 @@ class SnmpResponse(object):
         return self._index
 
     @property
+    def safe_value(self):
+        result = ""
+        try:
+            result = self.value
+        except TranslateSNMPException as e:
+            pass
+
+        return result
+
+    @property
     def value(self):
-        if self._raw_value is None:
+        if self._raw_value is None or not self.object_type:
             return
-        if not self.object_type:
-            return
-        if hasattr(self.object_type[1], "prettyPrint"):
-            value = self.object_type[1].prettyPrint()
-        else:
-            value = str(self.object_type[1])
-        if value.lower().startswith("0x"):
-            value = str(self._raw_value)
-        return value
+        try:
+            if hasattr(self.object_type[1], "prettyPrint"):
+                value = self.object_type[1].prettyPrint()
+            else:
+                value = str(self.object_type[1])
+            if value.lower().startswith("0x"):
+                value = str(self._raw_value)
+            return value
+        except PySnmpError as e:
+            self._logger.debug("Error parsing snmp response", exc_info=1)
+            raise TranslateSNMPException("Error parsing snmp response")
 
     def _get_oid(self):
         oid = self.object_type[0].getMibSymbol()
@@ -67,4 +82,7 @@ class SnmpResponse(object):
             self._index = ".".join(map(lambda x: x.prettyPrint(), oid[-1]))
 
     def __str__(self):
-        return self.value
+        return self.safe_value
+
+    def __repr__(self):
+        return self.__str__()

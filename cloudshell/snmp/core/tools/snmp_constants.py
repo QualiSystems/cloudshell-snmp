@@ -1,4 +1,4 @@
-from cloudshell.snmp.parameters.snmp_parameters import SNMPV3Parameters
+from cloudshell.snmp.snmp_parameters import SNMPV3Parameters
 from pysnmp.hlapi import usmNoPrivProtocol, usmDESPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, \
     usmAesCfb192Protocol, usmAesCfb256Protocol, usmNoAuthProtocol, usmHMACMD5AuthProtocol, usmHMACSHAAuthProtocol
 
