@@ -169,11 +169,7 @@ class SnmpResponseReader(object):
 
     def _parse_response(self, oid, value):
         # stop_flag = False
-        if self._stop_oid and oid >= self._stop_oid:
-            if value is None or value.tagSet in self.TAGS_TO_SKIP:
-                self._logger.debug(
-                    "Error retrieving oid '{}', value is '{}'".format(oid, value)
-                )
+        if (self._stop_oid and oid >= self._stop_oid) or value.tagSet in self.TAGS_TO_SKIP:
             return True
 
         elif value.tagSet == rfc1902.Integer32.tagSet:
