@@ -19,6 +19,12 @@ class SnmpResponse(object):
         self._object_type = ObjectType(self._object_id, self._raw_value)
 
     @property
+    def _object_identity(self):
+        if not self._object_id.isFullyResolved():
+            self._object_id.resolveWithMib(self._snmp_mib_translator)
+        return self._object_id
+
+    @property
     def object_type(self):
         if not self._object_type.isFullyResolved():
             self._object_type.resolveWithMib(self._snmp_mib_translator)
@@ -30,7 +36,7 @@ class SnmpResponse(object):
 
     @property
     def oid(self):
-        return self.object_type[0].getOid()
+        return self._object_identity.getOid()
 
     @property
     def mib_name(self):
@@ -77,7 +83,7 @@ class SnmpResponse(object):
             raise TranslateSNMPException("Error parsing snmp response")
 
     def _get_oid(self):
-        oid = self.object_type[0].getMibSymbol()
+        oid = self._object_identity.getMibSymbol()
         self._mib_name = oid[0]
         self._mib_id = oid[1]
         if isinstance(oid[-1], tuple):
