@@ -129,17 +129,17 @@ class SnmpParametersHelper(object):
     @property
     @lru_cache()
     def _get_v3_password(self):
-        return self._api.DecryptPassword(self._resource_config.snmp_v3_password)
+        return self._api.DecryptPassword(self._resource_config.snmp_v3_password).Value
 
     @property
     @lru_cache()
     def _get_read_community(self):
-        return self._api.DecryptPassword(self._resource_config.snmp_read_community)
+        return self._api.DecryptPassword(self._resource_config.snmp_read_community).Value
 
     @property
     @lru_cache()
     def _get_write_community(self):
-        return self._api.DecryptPassword(self._resource_config.snmp_write_community)
+        return self._api.DecryptPassword(self._resource_config.snmp_write_community).Value
 
     def get_snmp_parameters(self):
         """
