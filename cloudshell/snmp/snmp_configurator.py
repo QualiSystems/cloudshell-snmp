@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 
 from cloudshell.snmp.cloudshell_snmp import Snmp
+from cloudshell.snmp.snmp_parameters import SnmpParametersHelper
 
 
 class SnmpConfigurator(object):
@@ -21,11 +22,11 @@ class SnmpConfigurator(object):
         self._api = api
         # use like a container
         self._snmp = snmp or Snmp()
-        # self._snmp_parameters = get_snmp_parameters_from_command_context(resource_config, api)
+        self._snmp_parameters_helper = SnmpParametersHelper(resource_config, api)
 
     @property
     def _snmp_parameters(self):
-        pass
+        return self._snmp_parameters_helper.get_snmp_parameters()
 
     def get_service(self):
         """
