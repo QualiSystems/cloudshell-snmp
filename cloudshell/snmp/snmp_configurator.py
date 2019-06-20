@@ -16,7 +16,7 @@ class SnmpConfigurator(object):
         :param cloudshell.api.cloudshell_api.CloudShellAPISession api:
         :param snmp:
         """
-        self._resource_config = resource_config
+        self.resource_config = resource_config
         self._logger = logger
         self._api = api
         # use like a container
@@ -36,45 +36,39 @@ class SnmpConfigurator(object):
         return self._snmp.get_snmp_service(self._snmp_parameters, self._logger)
 
 
-class CommandFlow(ABC):
+class EnableDisableSnmpFlowInterface(ABC):
     @abstractmethod
-    def execute(self):
+    def enable_snmp(self):
+        pass
+
+    @abstractmethod
+    def disable_snmp(self):
         pass
 
 
-class EnabelDisableSnmpManager(object):
+class EnableDisableSnmpManager(object):
     """
     Context manager to enable/disable snmp
     """
 
-    def __init__(self, enable_flow, disable_flow, snmp, snmp_parameters, logger):
+    def __init__(self, enable_disable_flow, snmp_configurator):
         """
-        :param CommandFlow enable_flow:
-        :param CommandFlow disable_flow:
-        :param cloudshell.snmp.cloudshell_snmp.Snmp snmp:
-        :param snmp_parameters:
-        :param logger:
-        :return:
+        :param EnableDisableSnmpFlowInterface enable_disable_flow:
+        :param SnmpConfigurator snmp_configurator:
         """
-        self._enable_flow = enable_flow
-        self._disable_flow = disable_flow
-        self._snmp = snmp
-        self._snmp_parameters = snmp_parameters
-        self._logger = logger
+        self._enable_disable_flow = enable_disable_flow
+        self._snmp_configurator = snmp_configurator
 
-    @property
     @lru_cache()
     def _snmp_manager(self):
-        return self._snmp.get_snmp_service(self._snmp_parameters, self._logger)
+        return self._snmp_configurator.get_service()
 
     def __enter__(self):
         """
-        Execute enable flow and create snmp service
         :return:
-        :rtype: QualiSnmp
         """
-
-        self._enable_flow.execute()
+        if str(self._snmp_configurator.resource_config.enable_snmp).lower() == 'true':
+            self._enable_disable_flow.enable_snmp()
         return self._snmp_manager.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -85,27 +79,27 @@ class EnabelDisableSnmpManager(object):
         :param exc_tb:
         :return:
         """
-        self._disable_flow.execute()
+        if str(self._snmp_configurator.resource_config.disable_snmp).lower() == 'false':
+            self._enable_disable_flow.disable_snmp()
         self._snmp_manager.__exit__(exc_type, exc_val, exc_tb)
 
-
-class EnableDisableSnmpConfigurator(SnmpConfigurator, ABC):
-
-    @abstractmethod
-    def _enable_snmp_flow(self):
-        """
-        :rtype: CommandFlow
-        """
-        pass
-
-    @abstractmethod
-    def _disable_snmp_flow(self):
-        """
-        :rtype: CommandFlow
-        """
-        pass
-
-    def get_service(self):
-        return EnabelDisableSnmpManager(self._enable_snmp_flow(), self._disable_snmp_flow(), self._snmp,
-                                        self._snmp_parameters,
-                                        self._logger)
+# class EnableDisableSnmpConfigurator(SnmpConfigurator, ABC):
+#
+#     @abstractmethod
+#     def _enable_snmp_flow(self):
+#         """
+#         :rtype: CommandFlow
+#         """
+#         pass
+#
+#     @abstractmethod
+#     def _disable_snmp_flow(self):
+#         """
+#         :rtype: CommandFlow
+#         """
+#         pass
+#
+#     def get_service(self):
+#         return EnabelDisableSnmpManager(self._enable_snmp_flow(), self._disable_snmp_flow(), self._snmp,
+#                                         self._snmp_parameters,
+#                                         self._logger)
