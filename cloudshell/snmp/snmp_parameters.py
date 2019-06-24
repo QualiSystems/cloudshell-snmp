@@ -1,6 +1,3 @@
-from backports.functools_lru_cache import lru_cache
-
-
 class SnmpParameters(object):
     def __init__(self, ip, port=161, context_engine_id=None, context_name=""):
         self.ip = ip
@@ -16,7 +13,7 @@ class SnmpParameters(object):
 
 
 class SNMPV1Parameters(SnmpParameters):
-    def __init__(self, ip, snmp_community, port=161, context_engine_id=None, context_name=""):
+    def __init__(self, ip, snmp_community, port=161, is_read_only=True, context_engine_id=None, context_name=""):
         """
         Represents parameters for an SMNPV2 connection
         :param str ip: The device IP
@@ -28,10 +25,11 @@ class SNMPV1Parameters(SnmpParameters):
                                                context_engine_id=context_engine_id,
                                                context_name=context_name)
         self.snmp_community = snmp_community
+        self.is_read_only = is_read_only
 
 
 class SNMPV2Parameters(SNMPV1Parameters):
-    def __init__(self, ip, snmp_community, port=161, context_engine_id=None, context_name=""):
+    def __init__(self, ip, snmp_community, port=161, is_read_only=True, context_engine_id=None, context_name=""):
         """
         Represents parameters for an SMNPV2 connection
         :param str ip: The device IP
@@ -41,6 +39,7 @@ class SNMPV2Parameters(SNMPV1Parameters):
         super(SNMPV2Parameters, self).__init__(ip,
                                                snmp_community,
                                                port,
+                                               is_read_only,
                                                context_engine_id=context_engine_id,
                                                context_name=context_name)
 
@@ -126,35 +125,29 @@ class SnmpParametersHelper(object):
         self._resource_config = resource_config
         self._api = api
 
-    @property
-    @lru_cache()
-    def _get_v3_password(self):
-        return self._api.DecryptPassword(self._resource_config.snmp_v3_password).Value
-
-    @property
-    @lru_cache()
-    def _get_read_community(self):
-        return self._api.DecryptPassword(self._resource_config.snmp_read_community).Value
-
-    @property
-    @lru_cache()
-    def _get_write_community(self):
-        return self._api.DecryptPassword(self._resource_config.snmp_write_community).Value
-
     def get_snmp_parameters(self):
         """
 
         """
+
         if "3" in self._resource_config.snmp_version:
             return SNMPV3Parameters(ip=self._resource_config.address,
                                     snmp_user=self._resource_config.snmp_v3_user,
-                                    snmp_password=self._get_v3_password(),
+                                    snmp_password=self._resource_config.snmp_v3_password,
                                     snmp_private_key=self._resource_config.snmp_v3_private_key,
                                     auth_protocol=self._resource_config.snmp_v3_auth_protocol,
                                     private_key_protocol=self._resource_config.snmp_v3_priv_protocol)
-        elif "1" in self._resource_config.snmp_version:
-            return SNMPV1Parameters(self._resource_config.address,
-                                    self._get_write_community() or self._get_read_community())
         else:
-            return SNMPV2Parameters(self._resource_config.address,
-                                    self._get_write_community() or self._get_read_community())
+            is_read_only = True
+            community = self._resource_config.snmp_write_community
+            if community:
+                is_read_only = False
+            else:
+                community = self._resource_config.snmp_read_community
+
+            if "1" in self._resource_config.snmp_version:
+                return SNMPV1Parameters(self._resource_config.address,
+                                        community, is_read_only=is_read_only)
+            else:
+                return SNMPV2Parameters(self._resource_config.address,
+                                        community, is_read_only=is_read_only)
