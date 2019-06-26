@@ -39,11 +39,19 @@ class SnmpConfigurator(object):
 
 class EnableDisableSnmpFlowInterface(ABC):
     @abstractmethod
-    def enable_snmp(self):
+    def enable_snmp(self, snmp_parameters):
+        """
+        :param cloudshell.snmp.snmp_parameters.SnmpParameters snmp_parameters:
+        :return:
+        """
         pass
 
     @abstractmethod
-    def disable_snmp(self):
+    def disable_snmp(self, snmp_parameters):
+        """
+        :param cloudshell.snmp.snmp_parameters.SnmpParameters snmp_parameters:
+        :return:
+        """
         pass
 
 
