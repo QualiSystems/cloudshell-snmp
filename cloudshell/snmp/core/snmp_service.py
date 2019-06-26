@@ -23,6 +23,7 @@ class SnmpService(object):
         logger,
         retries=1,
         get_bulk_flag=False,
+        is_snmp_read_only=True
     ):
         self._snmp_engine = snmp_engine
         self._logger = logger
@@ -30,6 +31,7 @@ class SnmpService(object):
         self._context_name = context_name
         self._retries = retries
         self._get_bulk_flag = get_bulk_flag
+        self._is_snmp_read_only = is_snmp_read_only
         path_to_mibs = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "..", "mibs"
         )

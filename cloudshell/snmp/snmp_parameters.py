@@ -1,9 +1,19 @@
 class SnmpParameters(object):
+    class SnmpVersion:
+        def __init__(self):
+            pass
+
+        V1 = "1"
+        V2 = "2"
+        V3 = "3"
+
     def __init__(self, ip, port=161, context_engine_id=None, context_name=""):
         self.ip = ip
         self.port = port
         self.context_engine_id = context_engine_id
         self.context_name = context_name
+        self.version = None
+        self.is_read_only = None
 
     def validate(self):
         if not self.ip:
@@ -12,36 +22,35 @@ class SnmpParameters(object):
             raise Exception('SNMP port is not defined')
 
 
-class SNMPV1Parameters(SnmpParameters):
-    def __init__(self, ip, snmp_community, port=161, is_read_only=True, context_engine_id=None, context_name=""):
+class SNMPReadParameters(SnmpParameters):
+    def __init__(self, ip, snmp_community, version=SnmpParameters.SnmpVersion.V2, port=161, context_engine_id=None,
+                 context_name=""):
         """
         Represents parameters for an SMNPV2 connection
         :param str ip: The device IP
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
         """
-        super(SNMPV1Parameters, self).__init__(ip,
-                                               port,
-                                               context_engine_id=context_engine_id,
-                                               context_name=context_name)
+        super(SNMPReadParameters, self).__init__(ip,
+                                                 port,
+                                                 context_engine_id=context_engine_id,
+                                                 context_name=context_name)
         self.snmp_community = snmp_community
-        self.is_read_only = is_read_only
+        self.is_read_only = True
+        self.version = version
 
 
-class SNMPV2Parameters(SNMPV1Parameters):
-    def __init__(self, ip, snmp_community, port=161, is_read_only=True, context_engine_id=None, context_name=""):
+class SNMPWriteParameters(SNMPReadParameters):
+    def __init__(self, ip, snmp_community, version=SnmpParameters.SnmpVersion.V2, port=161, context_engine_id=None,
+                 context_name=""):
         """
         Represents parameters for an SMNPV2 connection
         :param str ip: The device IP
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
         """
-        super(SNMPV2Parameters, self).__init__(ip,
-                                               snmp_community,
-                                               port,
-                                               is_read_only,
-                                               context_engine_id=context_engine_id,
-                                               context_name=context_name)
+        super().__init__(ip, snmp_community, version, port, context_engine_id, context_name)
+        self.is_read_only = False
 
 
 class SNMPV3Parameters(SnmpParameters):
@@ -74,6 +83,8 @@ class SNMPV3Parameters(SnmpParameters):
                                                port,
                                                context_engine_id=context_engine_id,
                                                context_name=context_name)
+        self.is_read_only = False
+        self.version = SnmpParameters.SnmpVersion.V3
         self.snmp_user = snmp_user
         self.snmp_password = snmp_password
         self.snmp_private_key = snmp_private_key
@@ -138,16 +149,14 @@ class SnmpParametersHelper(object):
                                     auth_protocol=self._resource_config.snmp_v3_auth_protocol,
                                     private_key_protocol=self._resource_config.snmp_v3_priv_protocol)
         else:
-            is_read_only = True
+            version = SnmpParameters.SnmpVersion.V2
+            if "1" in self._resource_config.snmp_version:
+                version = SnmpParameters.SnmpVersion.V1
+
             community = self._resource_config.snmp_write_community
             if community:
-                is_read_only = False
-            else:
-                community = self._resource_config.snmp_read_community
-
-            if "1" in self._resource_config.snmp_version:
-                return SNMPV1Parameters(self._resource_config.address,
-                                        community, is_read_only=is_read_only)
-            else:
-                return SNMPV2Parameters(self._resource_config.address,
-                                        community, is_read_only=is_read_only)
+                return SNMPWriteParameters(self._resource_config.address,
+                                           community, version=version)
+            community = self._resource_config.snmp_read_community
+            return SNMPReadParameters(self._resource_config.address,
+                                      community, version=version)

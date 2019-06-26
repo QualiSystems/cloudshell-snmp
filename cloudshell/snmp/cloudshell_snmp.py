@@ -17,7 +17,7 @@ class Snmp(object):
     def get_snmp_service(self, snmp_parameters, logger):
         """
 
-        :param cloudshell.snmp.snmp_parameters.SnmpParameters snmp_parameters:
+        :param cloudshell.snmp.snmp_parameters.SnmpV2Parameters snmp_parameters:
         :param logging.Logger logger:
         :return:
         """
@@ -29,7 +29,8 @@ class Snmp(object):
                                   v3_context_engine_id=snmp_context.context_engine_id,
                                   v3_context_name=snmp_context.context_name,
                                   logger=logger,
-                                  get_bulk_flag=get_bulk_flag
+                                  get_bulk_flag=get_bulk_flag,
+                                  is_snmp_read_only=pysnmp_params.is_read_only
                                   )
 
     def _get_snmp_engine(self, pysnmp_params, logger):
