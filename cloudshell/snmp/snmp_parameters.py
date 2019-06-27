@@ -127,14 +127,13 @@ class SNMPV3Parameters(SnmpParameters):
 
 
 class SnmpParametersHelper(object):
-    def __init__(self, resource_config, api):
+    def __init__(self, resource_config):
         """
 
         :type resource_config: cloudshell.shell.standards.resource_config_generic_models.GenericSnmpConfig
         """
 
         self._resource_config = resource_config
-        self._api = api
 
     def get_snmp_parameters(self):
         """
