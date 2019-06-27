@@ -7,7 +7,7 @@ from pysnmp.smi import builder
 
 from cloudshell.snmp.core.domain.quali_mib_table import QualiMibTable
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
-from cloudshell.snmp.core.snmp_errors import ReadSNMPException
+from cloudshell.snmp.core.snmp_errors import ReadSNMPException, GeneralSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 
 
@@ -85,7 +85,9 @@ class SnmpService(object):
 
         :rtype: list of SnmpResponse
         """
-
+        if self._is_snmp_read_only:
+            # ToDo reprahse the error!
+            raise GeneralSNMPException("Set command is not supported")
         snmp_set_oids_list = snmp_set_oids
         if not isinstance(snmp_set_oids_list, (list, tuple)):
             snmp_set_oids_list = [snmp_set_oids]
