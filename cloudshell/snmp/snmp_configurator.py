@@ -56,24 +56,29 @@ class EnableDisableSnmpManager(object):
     Context manager to enable/disable snmp
     """
 
-    def __init__(self, enable_disable_flow, snmp_parameters, snmp, logger):
+    def __init__(self, enable_disable_flow, snmp_parameters, snmp, logger, enable=True, disable=True):
         """
         :param EnableDisableSnmpFlowInterface enable_disable_flow:
         :param cloudshell.snmp.snmp_parameters.SnmpParameters snmp_parameters:
         :param cloudshell.snmp.cloudshell_snmp.Snmp snmp:
         :param logging.Logger logger:
+        :param bool enable:
+        :disable bool disable:
         """
         self._enable_disable_flow = enable_disable_flow
         self._snmp_parameters = snmp_parameters
         self._logger = logger
         self._snmp_manager = snmp.get_snmp_service(self._snmp_parameters, self._logger)
+        self._enable = enable
+        self._disable = disable
 
     def __enter__(self):
         """
         :return:
         """
-        self._logger.debug('Calling enable snmp flow')
-        self._enable_disable_flow.enable_snmp(self._snmp_parameters)
+        if self._enable:
+            self._logger.debug('Calling enable snmp flow')
+            self._enable_disable_flow.enable_snmp(self._snmp_parameters)
         return self._snmp_manager.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -84,8 +89,9 @@ class EnableDisableSnmpManager(object):
         :param exc_tb:
         :return:
         """
-        self._logger.debug('Calling disable snmp flow')
-        self._enable_disable_flow.disable_snmp(self._snmp_parameters)
+        if self._disable:
+            self._logger.debug('Calling disable snmp flow')
+            self._enable_disable_flow.disable_snmp(self._snmp_parameters)
         self._snmp_manager.__exit__(exc_type, exc_val, exc_tb)
 
 
@@ -100,4 +106,7 @@ class EnableDisableSnmpConfigurator(SnmpConfigurator, ABC):
         self._enable_disable_snmp_flow = enable_disable_snmp_flow
 
     def get_service(self):
-        return EnableDisableSnmpManager(self._enable_disable_snmp_flow, self._snmp_parameters, self._snmp, self._logger)
+        enable = self.resource_config.enable_snmp.lower() == str(True).lower()
+        disable = self.resource_config.disable_snmp.lower() == str(True).lower()
+        return EnableDisableSnmpManager(self._enable_disable_snmp_flow, self._snmp_parameters, self._snmp, self._logger,
+                                        enable, disable)
