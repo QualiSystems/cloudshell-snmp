@@ -40,19 +40,19 @@ class SnmpRawOid(BaseSnmpOid):
         return object_type
 
 
-class SnmpMibOid(BaseSnmpOid):
-    def __init__(self, mib_name, mib_id, index=None, asn_mib_sources=None, custom_mib_sources=None):
+class SnmpMibObject(BaseSnmpOid):
+    def __init__(self, mib_name, object_name, index=None, asn_mib_sources=None, custom_mib_sources=None):
         self._mib_name = mib_name
-        self._mib_id = mib_id
+        self._object_name = object_name
         self.index = index
         self._asn_mib_sources = asn_mib_sources
         self._custom_mib_sources = custom_mib_sources
         self._object_identity = None
 
     def _create_object_identity(self):
-        object_identity = ObjectIdentity(*(self._mib_name, self._mib_id))
+        object_identity = ObjectIdentity(*(self._mib_name, self._object_name))
         if self.index is not None:
-            object_identity = ObjectIdentity(*((self._mib_name, self._mib_id) + tuple(str(self.index).split("."))))
+            object_identity = ObjectIdentity(*((self._mib_name, self._object_name) + tuple(str(self.index).split("."))))
         if self._asn_mib_sources:
             object_identity.addAsn1MibSource(self._asn_mib_sources)
         if self._custom_mib_sources:
@@ -85,7 +85,7 @@ class SnmpSetRawOid(SnmpRawOid):
         return object_type
 
 
-class SnmpSetMibName(SnmpMibOid):
+class SnmpSetMibName(SnmpMibObject):
     def __init__(self, mib_name, mib_id, index, value, asn_mib_sources=None, custom_mib_sources=None):
         super(SnmpSetMibName, self).__init__(mib_name, mib_id, index, asn_mib_sources, custom_mib_sources)
         self.value = value

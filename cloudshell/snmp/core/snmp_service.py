@@ -35,23 +35,23 @@ class SnmpService(object):
         path_to_mibs = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "..", "mibs"
         )
-        self.update_mib_file_sources(path_to_mibs)
+        self.add_mib_folder_path(path_to_mibs)
 
-    def update_mib_file_sources(self, mib_folder_path):
+    def add_mib_folder_path(self, path):
         """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
 
-        :param mib_folder_path: string path to mibs
+        :param path: string path to mibs
         """
 
         mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
-        builder.DirMibSource(mib_folder_path)
+        builder.DirMibSource(path)
         mib_sources = (
-            builder.DirMibSource(mib_folder_path),
+            builder.DirMibSource(path),
         ) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
 
-    def load_mib_oids(self, mib_list):
-        """Load all MIBs provided in incoming mib_list one by one
+    def load_mib_tables(self, mib_list):
+        """Load all MIB tables provided in incoming mib_list one by one
 
         :param mib_list: List of MIB names, for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
