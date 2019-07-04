@@ -193,7 +193,7 @@ class TextualConvention:
 #        return str(value)
 
 class DisplayString(TextualConvention, OctetString):
-    subtypeSpec = OctetString.subtypeSpec+ValueSizeConstraint(0,255)
+    subtypeSpec = OctetString.subtypeSpec+ValueSizeConstraint(0, 255)
     displayHint = "255a"
 
 class PhysAddress(TextualConvention, OctetString):

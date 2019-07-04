@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from mock import Mock
 
-from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2ReadParameters, SNMPV2WriteParameters
+from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPReadParameters, SNMPWriteParameters
 
 
 class TestSNMPParametersInit(TestCase):
@@ -14,14 +14,14 @@ class TestSNMPParametersInit(TestCase):
     SNMP_PRIVATE_KEY = "S3c@tw0rd"
 
     def test_snmp_v2_write_parameters(self):
-        snmp_v2_write_parameters = SNMPV2WriteParameters(ip=self.IP,
-                                                         snmp_write_community=self.SNMP_WRITE_COMMUNITY)
+        snmp_v2_write_parameters = SNMPWriteParameters(ip=self.IP,
+                                                       snmp_community=self.SNMP_WRITE_COMMUNITY)
 
         self.assertIs(self.IP, snmp_v2_write_parameters.ip)
         self.assertIs(self.SNMP_WRITE_COMMUNITY, snmp_v2_write_parameters.snmp_community)
 
     def test_snmp_v2_read_parameters(self):
-        snmp_v2_read_parameters = SNMPV2ReadParameters(ip=self.IP, snmp_read_community=self.SNMP_READ_COMMUNITY)
+        snmp_v2_read_parameters = SNMPReadParameters(ip=self.IP, snmp_community=self.SNMP_READ_COMMUNITY)
 
         self.assertTrue(snmp_v2_read_parameters.ip == self.IP)
         self.assertTrue(snmp_v2_read_parameters.snmp_community == self.SNMP_READ_COMMUNITY)
