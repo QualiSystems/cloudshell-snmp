@@ -38,22 +38,22 @@ class SnmpService(object):
         self.add_mib_folder_path(path_to_mibs)
 
     def add_mib_folder_path(self, path):
-        """Add specified path to the Pysnmp mib sources, which will be used to translate snmp responses.
+        """Add specified path to the Pysnmp mib sources.
 
+         They will be used to translate snmp responses.
         :param path: string path to mibs
         """
-
         mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
         builder.DirMibSource(path)
         mib_sources = (builder.DirMibSource(path),) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
 
     def load_mib_tables(self, mib_list):
-        """Load all MIB tables provided in incoming mib_list one by one
+        """Load all MIB tables provided in incoming mib_list one by one.
 
-        :param mib_list: List of MIB names, for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
+        :param mib_list: List of MIB names,
+            for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
-
         mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
         if isinstance(mib_list, str):
             mib_list = [mib_list]
@@ -61,25 +61,41 @@ class SnmpService(object):
         for mib in mib_list:
             mib_builder.loadModules(mib)
 
-    def set(self, snmp_set_oids):
-        """SNMP Set operation. Set appropriate oid value on the device
+    def set(self, snmp_set_oids):  # noqa: A003
+        """SNMP Set operation.
 
-        :param snmp_set_oids: list or single SnmpSetMibName and/or SnmpSetRawOid object to set.
+        Set appropriate oid value on the device
+        :param snmp_set_oids: list or single SnmpSetMibName and/or
+            SnmpSetRawOid object to set.
             For example, to set sysContact:
-            snmp_obj = SnmpSetMibName(mib_name="SNMPv2-MIB", mib_id="sysContact", index=0, value="Owner")
+            snmp_obj = SnmpSetMibName(
+                mib_name="SNMPv2-MIB", mib_id="sysContact", index=0, value="Owner"
+            )
             or
             snmp_obj = SnmpSetRawOid(oid="1.3.6.1.2.1.1.4.0", value="Owner)
             then
             set(snmp_obj)
 
             2 Example, set mib table row:
-            set([SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyProtocol", 10, 1),
-                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopySourceFileType", 10, 1),
-                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyDestFileType", 10, 3),
-                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyServerAddress", 10, "10.10.95.180"),
-                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyFileName", 10, "test_snmp_running_config_save"),
-                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyVrfName", 10, "management"),
-                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyEntryRowStatus", 10, 4)])
+            set([
+                SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyProtocol", 10, 1),
+                SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopySourceFileType", 10, 1),
+                SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyDestFileType", 10, 3),
+                SnmpSetMibName(
+                    "CISCO-CONFIG-COPY-MIB", "ccCopyServerAddress", 10, "10.10.95.180"
+                ),
+                SnmpSetMibName(
+                    "CISCO-CONFIG-COPY-MIB",
+                    "ccCopyFileName",
+                    10,
+                    "test_snmp_running_config_save",
+                ),
+                SnmpSetMibName(
+                    "CISCO-CONFIG-COPY-MIB", "ccCopyVrfName", 10, "management"
+                ),
+                SnmpSetMibName(
+                    "CISCO-CONFIG-COPY-MIB", "ccCopyEntryRowStatus", 10, 4)]
+                )
 
         :rtype: list of SnmpResponse
         """
@@ -118,8 +134,9 @@ class SnmpService(object):
         return response
 
     def get(self, snmp_oid):
-        """ Get snmp operation. Load appropriate oid value from the device.
+        """Get snmp operation.
 
+        Load appropriate oid value from the device.
         :param snmp_oid: Single SnmpMibOid or SnmpRawOid object.
             For example, an object to get sysContact can by any of the following:
             SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)
@@ -127,7 +144,6 @@ class SnmpService(object):
             SnmpRawOid('1.3.6.1.2.1.1.4.0')
         :return: SnmpResponse
         """
-
         oid = snmp_oid.get_oid(self._snmp_engine)
         if hasattr(oid, "index") and not oid.index:
             oid.index = 0
@@ -146,8 +162,9 @@ class SnmpService(object):
         return result
 
     def get_next(self, snmp_oid):
-        """ Get snmp operation. Load appropriate oid value from the device.
+        """Get snmp operation.
 
+        Load appropriate oid value from the device.
         :param snmp_oid: Single SnmpMibOid or SnmpRawOid object.
             For example, an object to get sysContact can by any of the following:
             SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)
@@ -155,14 +172,12 @@ class SnmpService(object):
             SnmpRawOid('1.3.6.1.2.1.1.4.0')
         :return: list of SnmpResponse
         """
-
         oid = snmp_oid.get_oid(self._snmp_engine)
 
         service = self._create_response_service()
         stop_oid = "{}{}".format(str(oid)[:-1], int(str(oid)[-1:]) + 1)
         stop_oid = univ.ObjectIdentifier(stop_oid)
         service.send_walk_var_binds(oid=oid, stop_oid=stop_oid)
-        # service.send_walk_var_binds(oid=oid, stop_oid=stop_oid, cb_fun=service.cb_fun)
 
         self._start_dispatcher()
 
@@ -170,17 +185,11 @@ class SnmpService(object):
 
         if service.result:
             return list(service.result)
-        # result = []
-        # if service.result:
-        #     for response in service.result:
-        #         if response.mib_id == snmp_oid.mib_id \
-        #                 and snmp_oid.index in response.index:
-        #             result.append(response)
-        # return result
 
     def get_list(self, snmp_oid_list):
-        """ Get snmp operation. Load list of appropriate oid values from the device.
+        """Get snmp operation.
 
+        Load list of appropriate oid values from the device.
         :param snmp_oid_list: List of SnmpMibOid or SnmpRawOid objects.
             For example, an object to get sysContact can by any of the following:
             [SnmpMibOid('SNMPv2-MIB', 'sysContact'), SnmpRawOid('1.3.6.1.2.1.1.4.0')]
@@ -316,7 +325,7 @@ class SnmpService(object):
     def _start_dispatcher(self):
         try:
             self._snmp_engine.transportDispatcher.runDispatcher()
-        except Exception as e:
+        except Exception:
             self._logger.debug("Error retrieving snmp response ", exc_info=1)
             raise
 

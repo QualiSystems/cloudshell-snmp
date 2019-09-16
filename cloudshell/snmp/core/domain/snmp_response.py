@@ -63,7 +63,7 @@ class SnmpResponse(object):
         result = ""
         try:
             result = self.value or ""
-        except TranslateSNMPException as e:
+        except TranslateSNMPException:
             pass
 
         return result
@@ -80,8 +80,7 @@ class SnmpResponse(object):
             if value.lower().startswith("0x"):
                 value = str(self._raw_value)
             return value
-        except (PySnmpError, SmiError) as e:
-            # self._logger.debug("Error parsing snmp response", exc_info=1)
+        except (PySnmpError, SmiError):
             raise TranslateSNMPException("Error parsing snmp response")
 
     def _get_oid(self):

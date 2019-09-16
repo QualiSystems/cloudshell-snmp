@@ -168,7 +168,6 @@ class SnmpResponseReader(object):
         return stop_flag
 
     def _parse_response(self, oid, value):
-        # stop_flag = False
         if (
             self._stop_oid and oid >= self._stop_oid
         ) or value.tagSet in self.TAGS_TO_SKIP:
