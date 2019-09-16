@@ -8,3 +8,5 @@
 <p align="center">
 <img src="https://github.com/QualiSystems/devguide_source/raw/master/logo.png"></img>
 </p>
+
+We use tox and pre-commit for testing. [Services description](https://github.com/QualiSystems/cloudshell-package-repo-template#description-of-services)
