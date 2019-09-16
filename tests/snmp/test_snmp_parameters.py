@@ -5,12 +5,12 @@ from cloudshell.snmp.snmp_parameters import (
     SNMPReadParameters,
     SNMPV3Parameters,
     SNMPWriteParameters,
-)
+    SnmpParametersHelper, SnmpParameters)
 
 if sys.version_info >= (3, 0):
     from unittest.mock import Mock
 else:
-    from mock import Mock
+    from mock import Mock, MagicMock
 
 
 class TestSNMPParametersInit(TestCase):
@@ -55,12 +55,22 @@ class TestSNMPParametersInit(TestCase):
         self.assertTrue(snmp_v3_parameters.snmp_private_key == self.SNMP_PRIVATE_KEY)
 
     def test_snmp_v3_parameters_validate_no_user(self):
-        with self.assertRaisesRegexp(Exception, "SNMPv3 user is not defined"):
+        if sys.version_info >= (3, 0):
+            assert_regex = self.assertRaisesRegex
+        else:
+            assert_regex = self.assertRaisesRegexp
+
+        with assert_regex(Exception, "SNMPv3 user is not defined"):
             SNMPV3Parameters(Mock(), "", Mock(), Mock()).validate()
 
     def test_snmp_v3_parameters_validate_unknown_auth_protocol(self):
         auth_protocol = "test_auth_protocol"
-        with self.assertRaisesRegexp(
+        if sys.version_info >= (3, 0):
+            assert_regex = self.assertRaisesRegex
+        else:
+            assert_regex = self.assertRaisesRegexp
+
+        with assert_regex(
             Exception, "Unknown Authentication Protocol {}".format(auth_protocol)
         ):
             SNMPV3Parameters(
@@ -69,7 +79,12 @@ class TestSNMPParametersInit(TestCase):
 
     def test_snmp_v3_parameters_validate_unknown_priv_protocol(self):
         priv_protocol = "test_priv_protocol"
-        with self.assertRaisesRegexp(
+        if sys.version_info >= (3, 0):
+            assert_regex = self.assertRaisesRegex
+        else:
+            assert_regex = self.assertRaisesRegexp
+
+        with assert_regex(
             Exception, "Unknown Privacy Protocol {}".format(priv_protocol)
         ):
             SNMPV3Parameters(
@@ -85,7 +100,12 @@ class TestSNMPParametersInit(TestCase):
     def test_snmp_v3_parameters_validate_no_auth_priv(self):
         auth_proto = SNMPV3Parameters.AUTH_NO_AUTH
         priv_protocol = SNMPV3Parameters.PRIV_3DES
-        with self.assertRaisesRegexp(
+        if sys.version_info >= (3, 0):
+            assert_regex = self.assertRaisesRegex
+        else:
+            assert_regex = self.assertRaisesRegexp
+
+        with assert_regex(
             Exception, "{} cannot be used with {}".format(priv_protocol, auth_proto)
         ):
             SNMPV3Parameters(
@@ -95,7 +115,12 @@ class TestSNMPParametersInit(TestCase):
     def test_snmp_v3_parameters_validate_auth_no_password(self):
         auth_proto = SNMPV3Parameters.AUTH_MD5
         priv_protocol = SNMPV3Parameters.PRIV_NO_PRIV
-        with self.assertRaisesRegexp(
+        if sys.version_info >= (3, 0):
+            assert_regex = self.assertRaisesRegex
+        else:
+            assert_regex = self.assertRaisesRegexp
+
+        with assert_regex(
             Exception,
             "SNMPv3 Password has to be specified for Authentication Protocol {}".format(
                 auth_proto
@@ -108,7 +133,12 @@ class TestSNMPParametersInit(TestCase):
     def test_snmp_v3_parameters_validate_priv_no_priv_key(self):
         auth_proto = SNMPV3Parameters.AUTH_MD5
         priv_protocol = SNMPV3Parameters.PRIV_3DES
-        with self.assertRaisesRegexp(
+        if sys.version_info >= (3, 0):
+            assert_regex = self.assertRaisesRegex
+        else:
+            assert_regex = self.assertRaisesRegexp
+
+        with assert_regex(
             Exception,
             "SNMPv3 Private key has to be specified for Privacy Protocol {}".format(
                 priv_protocol
@@ -126,3 +156,50 @@ class TestSNMPParametersInit(TestCase):
         ).get_valid()
         self.assertEqual(valid_instance.snmp_password, "")
         self.assertEqual(valid_instance.snmp_private_key, "")
+
+    def test_snmp_params_helper_creates_read_params(self):
+        resource_config = Mock()
+        resource_config.snmp_version = "2"
+        resource_config.snmp_read_community = "public"
+        resource_config.snmp_write_community = ""
+        helper = SnmpParametersHelper(resource_config)
+        params = helper.get_snmp_parameters()
+        self.assertEqual(params.ip, resource_config.address)
+        self.assertEqual(params.snmp_community, resource_config.snmp_read_community)
+
+    def test_snmp_params_helper_creates_write_params(self):
+        resource_config = Mock()
+        resource_config.snmp_version = "2"
+        resource_config.snmp_write_community = "public1"
+        helper = SnmpParametersHelper(resource_config)
+        params = helper.get_snmp_parameters()
+        self.assertEqual(params.ip, resource_config.address)
+        self.assertEqual(params.snmp_community, resource_config.snmp_write_community)
+
+    def test_snmp_params_helper_creates_v3_params(self):
+        resource_config = Mock()
+        resource_config.snmp_version = "3"
+        resource_config.snmp_v3_user = "user"
+        resource_config.snmp_v3_password = "pass"
+        resource_config.snmp_v3_private_key = "pass"
+        resource_config.snmp_v3_auth_protocol = "SHA"
+        resource_config.snmp_v3_priv_protocol = "DES"
+        helper = SnmpParametersHelper(resource_config)
+        params = helper.get_snmp_parameters()
+        self.assertEqual(params.ip, resource_config.address)
+        self.assertEqual(params.snmp_user, resource_config.snmp_v3_user)
+        self.assertEqual(params.snmp_password, resource_config.snmp_v3_password)
+        self.assertEqual(params.snmp_private_key, resource_config.snmp_v3_private_key)
+        self.assertEqual(params.auth_protocol, SNMPV3Parameters.AUTH_SHA)
+        self.assertEqual(params.private_key_protocol, SNMPV3Parameters.PRIV_DES)
+
+    def test_snmp_params_helper_creates_v1_params(self):
+        resource_config = Mock()
+        resource_config.snmp_version = "1"
+        resource_config.snmp_read_community = "public"
+        resource_config.snmp_write_community = ""
+        helper = SnmpParametersHelper(resource_config)
+        params = helper.get_snmp_parameters()
+        self.assertEqual(params.ip, resource_config.address)
+        self.assertEqual(params.snmp_community, resource_config.snmp_read_community)
+        self.assertEqual(params.version, SnmpParameters.SnmpVersion.V1)

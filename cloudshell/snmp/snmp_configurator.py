@@ -1,7 +1,9 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from cloudshell.snmp.cloudshell_snmp import Snmp
 from cloudshell.snmp.snmp_parameters import SnmpParametersHelper
+
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
 
 class SnmpConfigurator(object):
@@ -100,7 +102,7 @@ class EnableDisableSnmpConfigurator(SnmpConfigurator, ABC):
         :param resource_config:
         :param logger:
         """
-        super().__init__(resource_config, logger)
+        super(EnableDisableSnmpConfigurator, self).__init__(resource_config, logger)
         self._enable_disable_snmp_flow = enable_disable_snmp_flow
 
     def get_service(self):
