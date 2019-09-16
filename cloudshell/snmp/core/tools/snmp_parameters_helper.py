@@ -50,9 +50,15 @@ class SnmpParametersConverter(object):
 
     def _get_security(self):
         if "3" in self.snmp_parameters.version:
-            if self.snmp_parameters.snmp_private_key is None and self.snmp_parameters.snmp_password is None:
+            if (
+                self.snmp_parameters.snmp_private_key is None
+                and self.snmp_parameters.snmp_password is None
+            ):
                 self._security = self.NO_AUTH_NO_PRIV
-            elif self.snmp_parameters.snmp_password and self.snmp_parameters.snmp_private_key is None:
+            elif (
+                self.snmp_parameters.snmp_password
+                and self.snmp_parameters.snmp_private_key is None
+            ):
                 self._security = self.AUTH_NO_PRIV
             else:
                 self._security = self.AUTH_PRIV

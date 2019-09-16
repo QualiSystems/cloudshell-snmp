@@ -9,7 +9,9 @@ from cloudshell.snmp.core.snmp_errors import TranslateSNMPException
 class SnmpResponse(object):
     def __init__(self, oid, value, snmp_engine, logger):
         self._raw_oid = oid
-        self._snmp_mib_translator = CommandGeneratorVarBinds.getMibViewController(snmp_engine)
+        self._snmp_mib_translator = CommandGeneratorVarBinds.getMibViewController(
+            snmp_engine
+        )
         self._logger = logger
         self._mib_id = None
         self._mib_name = None

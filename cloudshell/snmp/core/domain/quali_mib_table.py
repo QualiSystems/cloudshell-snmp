@@ -25,8 +25,9 @@ class QualiMibTable(dict):
         :return: a partial table containing only the requested rows.
         """
 
-        return QualiMibTable(self._name, OrderedDict((i, v) for i, v in self.items() if
-                                                     i in indexes))
+        return QualiMibTable(
+            self._name, OrderedDict((i, v) for i, v in self.items() if i in indexes)
+        )
 
     def get_columns(self, *names):
         """
@@ -35,9 +36,13 @@ class QualiMibTable(dict):
         """
 
         names = [n for n in names]
-        return QualiMibTable(self._name, OrderedDict((i, {n: v for n, v in values.items() if
-                                                          n in names}) for
-                                                     i, values in self.items()))
+        return QualiMibTable(
+            self._name,
+            OrderedDict(
+                (i, {n: v for n, v in values.items() if n in names})
+                for i, values in self.items()
+            ),
+        )
 
     def filter_by_column(self, name, *values):
         """
@@ -47,8 +52,12 @@ class QualiMibTable(dict):
             the requested column.
         """
 
-        return QualiMibTable(self._name, OrderedDict((i, _values) for i, _values in self.items() if
-                                                     _values[name] in values))
+        return QualiMibTable(
+            self._name,
+            OrderedDict(
+                (i, _values) for i, _values in self.items() if _values[name] in values
+            ),
+        )
 
     def sort_by_column(self, name):
         """
@@ -57,7 +66,9 @@ class QualiMibTable(dict):
         """
 
         column = self.get_columns(name)
-        return QualiMibTable(self._name, sorted(column.items(), key=lambda t: int(t[1][name])))
+        return QualiMibTable(
+            self._name, sorted(column.items(), key=lambda t: int(t[1][name]))
+        )
 
     @staticmethod
     def create_from_list(name, response_list):
