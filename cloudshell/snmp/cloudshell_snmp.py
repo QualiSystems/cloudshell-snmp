@@ -14,11 +14,10 @@ class Snmp(object):
         self._snmp_retry_count = retry_count
 
     def get_snmp_service(self, snmp_parameters, logger):
-        """
+        """Get SNMP service.
 
         :param cloudshell.snmp.snmp_parameters.SnmpV2Parameters snmp_parameters:
         :param logging.Logger logger:
-        :return:
         """
         pysnmp_params = SnmpParametersConverter(snmp_parameters)
         snmp_engine = self._get_snmp_engine(pysnmp_params, logger)
@@ -36,9 +35,9 @@ class Snmp(object):
         )
 
     def _get_snmp_engine(self, pysnmp_params, logger):
-        """
-        :param cloudshell.snmp.core.tools.snmp_parameters_helper.SnmpParametersConverter pysnmp_params:
-        :return:
+        """Get SNMP engine.
+
+        :param cloudshell.snmp.core.tools.snmp_parameters_helper.SnmpParametersConverter pysnmp_params:  # noqa: E501
         """
         snmp_engine = engine.SnmpEngine()
         config.addTargetParams(

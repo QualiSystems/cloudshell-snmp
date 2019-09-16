@@ -1,22 +1,14 @@
 class GeneralSNMPException(Exception):
-    """
-    Basic Snmp exception
-    """
+    """Basic Snmp exception."""
 
 
 class ReadSNMPException(GeneralSNMPException):
-    """
-    Snmp response read exception
-    """
+    """Snmp response read exception."""
 
 
 class InitializeSNMPException(Exception):
-    """
-    Snmp initialize exception
-    """
+    """Snmp initialize exception."""
 
 
 class TranslateSNMPException(GeneralSNMPException):
-    """
-    Snmp response read exception
-    """
+    """Snmp response read exception."""

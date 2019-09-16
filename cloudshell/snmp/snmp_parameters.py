@@ -32,8 +32,8 @@ class SNMPReadParameters(SnmpParameters):
         context_engine_id=None,
         context_name="",
     ):
-        """
-        Represents parameters for an SMNPV2 connection
+        """Represents parameters for an SMNPV2 connection.
+
         :param str ip: The device IP
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
@@ -56,8 +56,8 @@ class SNMPWriteParameters(SNMPReadParameters):
         context_engine_id=None,
         context_name="",
     ):
-        """
-        Represents parameters for an SMNPV2 connection
+        """Represents parameters for an SMNPV2 connection.
+
         :param str ip: The device IP
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
@@ -92,15 +92,17 @@ class SNMPV3Parameters(SnmpParameters):
         context_engine_id=None,
         context_name="",
     ):
-        """
-        Represents parameters for an SMNPV3 connection
+        """Represents parameters for an SMNPV3 connection.
+
         :param str ip: The device IP
         :param str snmp_user: SNMP user
         :param str snmp_password: SNMP Password
         :param str snmp_private_key: Private key
         :param int port: SNMP port to use
-        :param auth_protocol: a constant of SnmpAuthProtocol class that defines Auth protocol to use
-        :param private_key_protocol: a constant of SnmpPrivProtocol class that defines what Private protocol to use
+        :param auth_protocol: a constant of SnmpAuthProtocol class that defines
+            Auth protocol to use
+        :param private_key_protocol: a constant of SnmpPrivProtocol class that defines
+            what Private protocol to use
         """
         super(SNMPV3Parameters, self).__init__(
             ip, port, context_engine_id=context_engine_id, context_name=context_name
@@ -114,9 +116,6 @@ class SNMPV3Parameters(SnmpParameters):
         self.private_key_protocol = private_key_protocol
 
     def validate(self):
-        """
-        Validate
-        """
         super(SNMPV3Parameters, self).validate()
 
         if not self.snmp_user:
@@ -150,9 +149,8 @@ class SNMPV3Parameters(SnmpParameters):
 
         if self.auth_protocol != self.AUTH_NO_AUTH and not self.snmp_password:
             raise Exception(
-                "SNMPv3 Password has to be specified for Authentication Protocol {}".format(
-                    self.auth_protocol
-                )
+                "SNMPv3 Password has to be specified for Authentication "
+                "Protocol {}".format(self.auth_protocol)
             )
 
         if self.private_key_protocol != self.PRIV_NO_PRIV and not self.snmp_private_key:
@@ -173,18 +171,13 @@ class SNMPV3Parameters(SnmpParameters):
 
 class SnmpParametersHelper(object):
     def __init__(self, resource_config):
-        """
+        """SNMP Parameter Helper.
 
-        :type resource_config: cloudshell.shell.standards.resource_config_generic_models.GenericSnmpConfig
+        :type resource_config: cloudshell.shell.standards.resource_config_generic_models.GenericSnmpConfig  # noqa E501
         """
-
         self._resource_config = resource_config
 
     def get_snmp_parameters(self):
-        """
-
-        """
-
         if "3" in self._resource_config.snmp_version:
             return SNMPV3Parameters(
                 ip=self._resource_config.address,
