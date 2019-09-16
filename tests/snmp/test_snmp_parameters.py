@@ -1,7 +1,11 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPReadParameters, SNMPWriteParameters
+from cloudshell.snmp.snmp_parameters import (
+    SNMPReadParameters,
+    SNMPV3Parameters,
+    SNMPWriteParameters,
+)
 
 
 class TestSNMPParametersInit(TestCase):

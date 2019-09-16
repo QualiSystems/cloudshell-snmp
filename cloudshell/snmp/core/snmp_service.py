@@ -7,7 +7,7 @@ from pysnmp.smi import builder
 
 from cloudshell.snmp.core.domain.quali_mib_table import QualiMibTable
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
-from cloudshell.snmp.core.snmp_errors import ReadSNMPException, GeneralSNMPException
+from cloudshell.snmp.core.snmp_errors import GeneralSNMPException, ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 
 

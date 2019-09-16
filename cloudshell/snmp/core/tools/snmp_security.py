@@ -1,6 +1,9 @@
 from pysnmp.entity import config
 
-from cloudshell.snmp.core.tools.snmp_constants import AUTH_PROTOCOL_MAP, PRIV_PROTOCOL_MAP
+from cloudshell.snmp.core.tools.snmp_constants import (
+    AUTH_PROTOCOL_MAP,
+    PRIV_PROTOCOL_MAP,
+)
 
 
 class SnmpSecurity(object):

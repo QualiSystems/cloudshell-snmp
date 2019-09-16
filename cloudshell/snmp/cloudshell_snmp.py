@@ -1,11 +1,11 @@
-from pysnmp.entity import engine, config
+from pysnmp.entity import config, engine
 
-from cloudshell.snmp.core.tools.snmp_parameters_helper import SnmpParametersConverter
+from cloudshell.snmp.core.snmp_context_manager import SnmpContextManager
+from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 from cloudshell.snmp.core.tools.snmp_context import SnmpContext
+from cloudshell.snmp.core.tools.snmp_parameters_helper import SnmpParametersConverter
 from cloudshell.snmp.core.tools.snmp_security import SnmpSecurity
 from cloudshell.snmp.core.tools.snmp_trasnport import SnmpTransport
-from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
-from cloudshell.snmp.core.snmp_context_manager import SnmpContextManager
 
 
 class Snmp(object):
