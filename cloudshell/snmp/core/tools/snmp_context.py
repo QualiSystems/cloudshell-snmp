@@ -9,17 +9,23 @@ class SnmpContext(object):
     @property
     def context_engine_id(self):
         if self._v3_context_engine_id:
-            if self._v3_context_engine_id[2:] == '0x':
-                self._v3_context_engine_id = univ.OctetString(hexValue=self._v3_context_engine_id[2:])
+            if self._v3_context_engine_id[2:] == "0x":
+                self._v3_context_engine_id = univ.OctetString(
+                    hexValue=self._v3_context_engine_id[2:]
+                )
             else:
-                self._v3_context_engine_id = univ.OctetString(self._v3_context_engine_id)
+                self._v3_context_engine_id = univ.OctetString(
+                    self._v3_context_engine_id
+                )
         return self._v3_context_engine_id
 
     @property
     def context_name(self):
         if self._v3_context_name:
-            if self._v3_context_name[:2] == '0x':
-                self._v3_context_name = univ.OctetString(hexValue=self._v3_context_name[2:])
+            if self._v3_context_name[:2] == "0x":
+                self._v3_context_name = univ.OctetString(
+                    hexValue=self._v3_context_name[2:]
+                )
             else:
                 self._v3_context_name = univ.OctetString(self._v3_context_name)
         return self._v3_context_name

@@ -57,7 +57,15 @@ class EnableDisableSnmpManager(object):
     Context manager to enable/disable snmp
     """
 
-    def __init__(self, enable_disable_flow, snmp_parameters, snmp, logger, enable=True, disable=True):
+    def __init__(
+        self,
+        enable_disable_flow,
+        snmp_parameters,
+        snmp,
+        logger,
+        enable=True,
+        disable=True,
+    ):
         """
         :param EnableDisableSnmpFlowInterface enable_disable_flow:
         :param cloudshell.snmp.snmp_parameters.SnmpParameters snmp_parameters:
@@ -78,7 +86,7 @@ class EnableDisableSnmpManager(object):
         :return:
         """
         if self._enable:
-            self._logger.debug('Calling enable snmp flow')
+            self._logger.debug("Calling enable snmp flow")
             self._enable_disable_flow.enable_snmp(self._snmp_parameters)
         return self._snmp_manager.__enter__()
 
@@ -91,7 +99,7 @@ class EnableDisableSnmpManager(object):
         :return:
         """
         if self._disable:
-            self._logger.debug('Calling disable snmp flow')
+            self._logger.debug("Calling disable snmp flow")
             self._enable_disable_flow.disable_snmp(self._snmp_parameters)
         self._snmp_manager.__exit__(exc_type, exc_val, exc_tb)
 
@@ -109,5 +117,11 @@ class EnableDisableSnmpConfigurator(SnmpConfigurator, ABC):
     def get_service(self):
         enable = self.resource_config.enable_snmp.lower() == str(True).lower()
         disable = self.resource_config.disable_snmp.lower() == str(True).lower()
-        return EnableDisableSnmpManager(self._enable_disable_snmp_flow, self._snmp_parameters, self._snmp, self._logger,
-                                        enable, disable)
+        return EnableDisableSnmpManager(
+            self._enable_disable_snmp_flow,
+            self._snmp_parameters,
+            self._snmp,
+            self._logger,
+            enable,
+            disable,
+        )

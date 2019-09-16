@@ -23,7 +23,7 @@ class SnmpService(object):
         logger,
         retries=1,
         get_bulk_flag=False,
-        is_snmp_read_only=True
+        is_snmp_read_only=True,
     ):
         self._snmp_engine = snmp_engine
         self._logger = logger
@@ -45,9 +45,7 @@ class SnmpService(object):
 
         mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
         builder.DirMibSource(path)
-        mib_sources = (
-            builder.DirMibSource(path),
-        ) + mib_builder.getMibSources()
+        mib_sources = (builder.DirMibSource(path),) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
 
     def load_mib_tables(self, mib_list):
