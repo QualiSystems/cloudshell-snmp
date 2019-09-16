@@ -1,16 +1,30 @@
 language: python
-python:
-    - "3.6"
+
+jobs:
+  include:
+    - if: branch = master
+      python: 2.7
+      env: TOXENV=py27-master
+      after_success: codecov
+    - if: branch = master
+      python: 3.7
+      env: TOXENV=py37-master
+      after_success: codecov
+    - if: branch != master
+      python: 2.7
+      env: TOXENV=py27-dev
+      after_success: codecov
+    - if: branch != master
+      python: 3.7
+      env: TOXENV=py37-dev
+      after_success: codecov
+    - env: TOXENV=build
+      python: 2.7
+    - env: TOXENV=pre-commit
+      python: 3.7
 
 install:
-    - pip install -r requirements.txt
-    - pip install -r test_requirements.txt
-    - pip install codecov
+  - pip install tox
+  - pip install codecov
 
-script:
-    - python setup.py develop
-    - nosetests --with-coverage --cover-package=cloudshell.snmp --where=tests
-    - python setup.py sdist --format zip
-
-after_success:
-    codecov
+script: tox
