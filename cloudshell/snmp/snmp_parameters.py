@@ -62,7 +62,7 @@ class SNMPWriteParameters(SNMPReadParameters):
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
         """
-        super().__init__(
+        super(SNMPWriteParameters, self).__init__(
             ip, snmp_community, version, port, context_engine_id, context_name
         )
         self.is_read_only = False

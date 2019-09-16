@@ -1,11 +1,16 @@
+import sys
 from unittest import TestCase
-from unittest.mock import Mock
 
 from cloudshell.snmp.snmp_parameters import (
     SNMPReadParameters,
     SNMPV3Parameters,
     SNMPWriteParameters,
 )
+
+if sys.version_info >= (3, 0):
+    from unittest.mock import Mock
+else:
+    from mock import Mock
 
 
 class TestSNMPParametersInit(TestCase):
