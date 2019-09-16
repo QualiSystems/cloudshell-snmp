@@ -1,7 +1,7 @@
 import time
 
 from pysnmp.entity.rfc3413 import cmdgen
-from pysnmp.proto import rfc1905, rfc1902
+from pysnmp.proto import rfc1902, rfc1905
 from pysnmp.proto.errind import RequestTimedOut
 
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse

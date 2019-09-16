@@ -1,6 +1,16 @@
+from pysnmp.hlapi import (
+    usm3DESEDEPrivProtocol,
+    usmAesCfb128Protocol,
+    usmAesCfb192Protocol,
+    usmAesCfb256Protocol,
+    usmDESPrivProtocol,
+    usmHMACMD5AuthProtocol,
+    usmHMACSHAAuthProtocol,
+    usmNoAuthProtocol,
+    usmNoPrivProtocol,
+)
+
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters
-from pysnmp.hlapi import usmNoPrivProtocol, usmDESPrivProtocol, usm3DESEDEPrivProtocol, usmAesCfb128Protocol, \
-    usmAesCfb192Protocol, usmAesCfb256Protocol, usmNoAuthProtocol, usmHMACMD5AuthProtocol, usmHMACSHAAuthProtocol
 
 SNMP_RETRIES_COUNT = 2
 MAX_BULK_REPETITIONS = 25
@@ -17,10 +27,3 @@ PRIV_PROTOCOL_MAP = {SNMPV3Parameters.PRIV_NO_PRIV: usmNoPrivProtocol,
                      SNMPV3Parameters.PRIV_AES128: usmAesCfb128Protocol,
                      SNMPV3Parameters.PRIV_AES192: usmAesCfb192Protocol,
                      SNMPV3Parameters.PRIV_AES256: usmAesCfb256Protocol}
-
-
-
-
-
-
-
