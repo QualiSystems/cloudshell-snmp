@@ -1,5 +1,2 @@
-pycryptodome==3.4.7
-pysmi==0.1.3
-pyasn1==0.3.6
-ply==3.10
-pysnmp==4.3.9
+pysnmp>=4.4,<5
+ipaddress>=1.0.22,<2; python_version <= '2.7'
