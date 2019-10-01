@@ -39,7 +39,7 @@ class SnmpTransport(object):
                 self._logger,
             )
 
-        ip = ip_address(self._snmp_parameters.ip)
+        ip = ip_address(u"{}".format(self._snmp_parameters.ip))
         if isinstance(ip, IPv6Address):
             config.addSocketTransport(
                 snmp_engine,
