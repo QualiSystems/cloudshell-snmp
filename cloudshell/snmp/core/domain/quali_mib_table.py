@@ -34,7 +34,6 @@ class QualiMibTable(dict):
         :param names: list of requested columns names.
         :return: a partial table containing only the requested columns.
         """
-        names = [n for n in names]
         return QualiMibTable(
             self._name,
             OrderedDict(

@@ -112,8 +112,26 @@ class SNMPV3Parameters(SnmpParameters):
         self.snmp_user = snmp_user
         self.snmp_password = snmp_password
         self.snmp_private_key = snmp_private_key
-        self.auth_protocol = auth_protocol
-        self.private_key_protocol = private_key_protocol
+        self.snmp_auth_protocol = auth_protocol
+        self.snmp_private_key_protocol = private_key_protocol
+
+    # For backward compatibility auth_protocol and private_key_protocol
+    # will be available through properties
+    @property
+    def auth_protocol(self):
+        return self.snmp_auth_protocol
+
+    @auth_protocol.setter
+    def auth_protocol(self, value):
+        self.snmp_auth_protocol = value
+
+    @property
+    def private_key_protocol(self):
+        return self.snmp_private_key_protocol
+
+    @private_key_protocol.setter
+    def private_key_protocol(self, value):
+        self.snmp_private_key_protocol = value
 
     def validate(self):
         super(SNMPV3Parameters, self).validate()
