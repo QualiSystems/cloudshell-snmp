@@ -1,3 +1,6 @@
+import warnings
+
+
 class SnmpParameters(object):
     class SnmpVersion:
         def __init__(self):
@@ -116,21 +119,45 @@ class SNMPV3Parameters(SnmpParameters):
         self.snmp_private_key_protocol = private_key_protocol
 
     # For backward compatibility auth_protocol and private_key_protocol
-    # will be available through properties
     @property
     def auth_protocol(self):
+        warnings.warn(
+            "auth_protocol is obsolete please " "use snmp_auth_protocol field instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.snmp_auth_protocol
 
     @auth_protocol.setter
     def auth_protocol(self, value):
+        warnings.warn(
+            "auth_protocol is obsolete please " "use snmp_auth_protocol field instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.snmp_auth_protocol = value
 
     @property
     def private_key_protocol(self):
+        warnings.warn(
+            "private_key_protocol is obsolete please "
+            "use snmp_private_key_protocol "
+            "field instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         return self.snmp_private_key_protocol
 
     @private_key_protocol.setter
     def private_key_protocol(self, value):
+        warnings.warn(
+            "private_key_protocol is obsolete please "
+            "use snmp_private_key_protocol "
+            "field instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.snmp_private_key_protocol = value
 
     def validate(self):
