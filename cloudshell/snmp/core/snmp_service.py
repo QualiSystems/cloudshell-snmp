@@ -61,6 +61,19 @@ class SnmpService(object):
         for mib in mib_list:
             mib_builder.loadModules(mib)
 
+    def translate_oid(self, snmp_oid):
+        """Translates Raw OID into a human readable identifiers.
+
+        :param str snmp_oid: OID string. like: '1.3.6.1.2.1.1.4.0'
+        :return translated OID name
+        :rtype str
+        """
+        result = SnmpResponse(
+            snmp_oid, None, snmp_engine=self._snmp_engine, logger=self._logger
+        )
+
+        return result.mib_id
+
     def set(self, snmp_set_oids):  # noqa: A003
         """SNMP Set operation.
 

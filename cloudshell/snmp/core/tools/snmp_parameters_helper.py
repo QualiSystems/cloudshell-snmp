@@ -5,9 +5,6 @@ class SnmpParametersConverter(object):
     AUTH_PRIV = "authPriv"
 
     class PySnmpVersion:
-        def __init__(self):
-            pass
-
         V1 = 0
         V2 = 1
         V3 = 3
@@ -44,7 +41,7 @@ class SnmpParametersConverter(object):
     def user(self):
         if not self._user:
             self._user = self.DEFAULT_USER
-            if hasattr(self.snmp_parameters, "user"):
+            if hasattr(self.snmp_parameters, "snmp_user"):
                 self._user = self.snmp_parameters.snmp_user
         return self._user
 
