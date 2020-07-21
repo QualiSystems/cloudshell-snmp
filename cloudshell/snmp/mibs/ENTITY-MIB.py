@@ -14,21 +14,25 @@
 
 # Types
 
+
 class PhysicalClass(Integer):
     subtypeSpec = Integer.subtypeSpec+SingleValueConstraint(9,3,7,10,5,2,6,11,1,4,8,12,)
     namedValues = NamedValues(("other", 1), ("port", 10), ("stack", 11), ("cpu", 12), ("unknown", 2), ("chassis", 3), ("backplane", 4), ("container", 5), ("powerSupply", 6), ("fan", 7), ("sensor", 8), ("module", 9), )
-    
+
+
 class PhysicalIndex(TextualConvention, Integer32):
     displayHint = "d"
     subtypeSpec = Integer32.subtypeSpec+ValueRangeConstraint(1,2147483647)
-    
+
+
 class PhysicalIndexOrZero(TextualConvention, Integer32):
     displayHint = "d"
     subtypeSpec = Integer32.subtypeSpec+ValueRangeConstraint(0,2147483647)
-    
+
+
 class SnmpEngineIdOrNone(OctetString):
     subtypeSpec = OctetString.subtypeSpec+ValueSizeConstraint(0,32)
-    
+
 
 # Objects
 
