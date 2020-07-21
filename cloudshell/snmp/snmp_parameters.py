@@ -122,7 +122,7 @@ class SNMPV3Parameters(SnmpParameters):
     @property
     def auth_protocol(self):
         warnings.warn(
-            "auth_protocol is obsolete please " "use snmp_auth_protocol field instead",
+            "auth_protocol is obsolete please use snmp_auth_protocol field instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -131,7 +131,7 @@ class SNMPV3Parameters(SnmpParameters):
     @auth_protocol.setter
     def auth_protocol(self, value):
         warnings.warn(
-            "auth_protocol is obsolete please " "use snmp_auth_protocol field instead",
+            "auth_protocol is obsolete please use snmp_auth_protocol field instead",
             DeprecationWarning,
             stacklevel=2,
         )
