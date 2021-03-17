@@ -14,20 +14,9 @@ The cloudshell-snmp open source Python package provides an easy-to-use interface
 
 **Note:** We use tox and pre-commit for testing. For details, see [Services description](https://github.com/QualiSystems/cloudshell-package-repo-template#description-of-services).
 
-## Key features
-
-CloudShell SNMP offers the following key features (For details, see (Usage)[#usage]): 
-* Multi-protocol communication, including **SSH** and **Telnet**.
-* **Session pool**: CloudShell CLI uses a session pool to store and manage sessions safely between multiple threads using the [Python queue module](https://docs.python.org/3.7/library/queue.html). The maximum session pool size and timeout period are customizable parameters:
-  * Maximum session pool size (`max_pool_size`) determines the maximum number of concurrent sessions in the session pool (default is 1).
-  * Timeout period (`pool_timeout`) determines the maximum time a thread can wait for a session (default is 100 seconds).
-* **cli service** allows CloudShell CLI to switch between the device's CLI modes.
-<br>*CloudShell CLI uses the `with` statement to reserve the session and move between the modes, as illustrated in the examples below.*
-
-
 ## Installation
 ```bash
-pip install cloudshell-cli
+pip install cloudshell-snmp
 ```
 
 ### Contributing 
@@ -44,225 +33,83 @@ We welcome community ideas and contributions, so if you have any feedback or wou
 
 ## Usage
 
-CloudShell CLI is highly modular and implements many programming interfaces. 
+### Key components
 
-### Session
+CloudShell SNMP offers the following key features: 
+* `SnmpMibOid` and `SnmpRawOid` - entities used to build a request
+* `SnmpResponse`and `QualiMibTable` - types of objects we recieve in response from all communication methods (get, walk, get_table, etc.)
+* **snmp service** allows CloudShell SNMP to communicate with target device.
+<br>*CloudShell SNMP uses the `with` statement to establish a connection to the device.*
 
-**Session** is a service that initializes the session by declaring the session parameters and handles communication with the device. Depending on the communication protocol, you will need to either use **SSHSession** or **TelnetSession**.
+CloudShell SNMP is highly modular and implements many programming interfaces. 
 
-_**Note:** Creating a session object does not create a connection to the device. This is done by `SessionPoolManager` as part of the CLI's `get_session` command. Once the connection is established, the new session is stored and managed by the `SessionPoolManager`._ 
+### SNMP service
+**snmp service** is the service that manages communication with the device. Allowing you to `set`, `get`, `walk` and `get_table` to/from the device.
+Additionally it allows you to add more snmp MIB files by running `update_mib_sources` method
+Most communication methods requires you to pass either `SnmpMibOid` or `SnmpRawOid`, 
+i.e: `SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)` or `SnmpRawOid('1.3.6.1.2.1.1.4.0')`
+And in the result most of the commands return single or list of `SnmpResponse`, except get_table, since it returns table like dictionary: `QualiMibTable`.
 
-To initialize the session, we need to pass the  parameters:
-- **IP address**
-- **Username**
-- **Password**
-
-**Example: Initializing the session**
-
-```python
-from cloudshell.cli.session.ssh_session import SSHSession
-
-
-session = SSHSession(host='localhost', username='admin', password='Pass1234')
-```
-
-### CommandMode
-
-**CommandMode** enables you to define each mode on your device (in other words, how to enter and leave the mode, and the expected prompt). For example, most network devices include a root (or enable mode) and a configuration mode.
-
-CommandMode uses the following basic parameters:
-* **prompt**: (Mandatory) The expected command-line prompt. CLI will 
-* **enter_command**: (Optional) The CLI command to execute in order to enter a certain mode. For example, to enter config mode in Cisco, you need to run something like: 
-```bash
-nexus#
-nexus# configure terminal
-nexus(config)#
-```
-* **exit_command**: (Optional) The command to execute in order to exit a certain mode.
-* **parent_mode**: (Optional) Parameter that defines the preceding CLI mode.
-
-_**Note:** You're welcome to check the CommandMode docstring for additional parameters._
-
-**Example - Declaring a single command mode:**
-```python
-from cloudshell.cli.service.command_mode import CommandMode
-
-
-mode = CommandMode(prompt='*#')
-
-```
-
-**Example - Declaring two command modes and the hierarchy using `parent_mode`):**
+**Example - Executing 'update_mib_sources' and 'set' command**
 
 ```python
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.logging.qs_logger import get_qs_logger
+from cloudshell.snmp.cloudshell_snmp import Snmp
+from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpSetMibName
+from cloudshell.snmp.snmp_parameters import SNMPWriteParameters
 
+snmp_params = SNMPWriteParameters(ip, community, "v2")
+logger.info("started")
 
-enable_mode = CommandMode('*>')
-config_mode = CommandMode('*#', enter_command="configure terminal", exit_command="exit", parent_mode=enable_mode)
+snmp_handler = Snmp()
 
+with snmp_handler.get_snmp_service(snmp_parameters=snmp_params, logger=logger) as snmp_service:
+    snmp_service.update_mib_sources("D:\\cisco\\mibs")
+    set_id = 1 # Represents a row id, should be incremented.
+    response = snmp_service.set([SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyProtocol", set_id, 1),
+                                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopySourceFileType", set_id, 3),
+                                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyDestFileType", set_id, 1),
+                                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyServerAddress", set_id, "192.168.105.3"),
+                                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyFileName", set_id, "test_snmp_running_config_save"),
+                                 SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyEntryRowStatus", set_id, 4)])
 ```
 
-### CLI service
-**cli service** is the service that manages the sessions and command modes and allows us to send commands to the device and switch between the modes automatically. For example, if we have multiple command modes, cli service is able to move back and forth between these modes following the hierarchy defined by the `parent_mode` parameter of each commmand mode.
-
-**Example - Executing 'show interfaces'**
-
-Now that we've learned how to define the session and declare the command modes, we can start using them by creating a CLI object and passing the defined session and command modes.
+**Example - Executing 'get', 'get_next', 'get_list' and 'get_property' command**
 
 ```python
-from cloudshell.cli.service.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.logging.qs_logger import get_qs_logger
+from cloudshell.snmp.cloudshell_snmp import Snmp
+from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpSetMibName
+from cloudshell.snmp.snmp_parameters import SNMPWriteParameters
 
+snmp_params = SNMPWriteParameters(ip, community, "v2")
+logger.info("started")
 
-cli = CLI()
-mode = CommandMode(r'my_prompt_regex') # for example r'%\s*$'
+snmp_handler = Snmp()
 
-session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
+with snmp_handler.get_snmp_service(snmp_parameters=snmp_params, logger=logger) as snmp_service:
+    response = snmp_service.get_property(SnmpMibObject("SNMPv2-MIB", "sysDescr", 0))  # Retruns empty SnmpResponse in case get command failed to retrieve data
+    response = snmp_service.get(SnmpMibObject("SNMPv2-MIB", "sysDescr", 0))  # Raises an exception in case requested oid is not found
+    response = snmp_service.get_next(SnmpMibObject("SNMPv2-MIB", "sysDescr", 0))  # same as get
+    response = snmp_service.get_list(SnmpMibObject("SNMPv2-MIB", "sysDescr", 0))  # same as get
 
-# extract a session from the pool, send the command and return the session to the pool upon completing the "with"
-# block:
-with cli.get_session(session_types, mode) as cli_service:
-    out = cli_service.send_command('show interfaces')
-    print(out)
 
 ```
 
-**Example - Providing different communication protocols**
-
-In the previous example, we assumed the device works over SSH. However, you can specify multiple communication protocols (for example, SSH and Telnet). In such a case, CloudShell will attempt connection with each provided protocol until it finds the one that works.
+**Example - Executing 'walk' and 'get_table' command**
 
 ```python
-from cloudshell.cli.service.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.logging.qs_logger import get_qs_logger
+from cloudshell.snmp.cloudshell_snmp import Snmp
+from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpSetMibName
+from cloudshell.snmp.snmp_parameters import SNMPWriteParameters
 
+snmp_params = SNMPWriteParameters(ip, community, "v2")
+logger.info("started")
 
-cli = CLI()
-mode = CommandMode(r'my_prompt_regex') # for example r'%\s*$'
+snmp_handler = Snmp()
 
-session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
-
-with cli.get_session(session_types, mode) as cli_service:
-    out = cli_service.send_command('show interfaces')
-    print(out)
-
+with snmp_handler.get_snmp_service(snmp_parameters=snmp_params, logger=logger) as snmp_service:
+    response = snmp_service.walk(SnmpMibObject('IF-MIB', 'ifTable'))  # Retruns empty SnmpResponse in case get command failed to retrieve data
+    response = snmp_service.get_table(SnmpMibObject('IF-MIB', 'ifTable'))  # Raises an exception in case requested oid is not found
 ```
-**Example - Using multiple command modes**
-
-To illustrate this point, the following example will execute a `show interfaces` in config_mode and then `show version` in enable_mode.
-First, CloudShell CLI will get a session to the device from the session pool (which will create a new one if empty). The cli service will use the session to access the device and detect the current mode (let's assume it's **enable_mode**). Then, it will automatically switch to config_mode by executing the `enter_command` parameter, as specified in the **config_mode**'s definition.
-
-```python
-from cloudshell.cli.service.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
-
-
-hostname = "192.168.1.1"
-username = "admin"
-password = "admin"
-
-enable_mode = CommandMode('*>')
-config_mode = CommandMode('*#', enter_command="configure", exit_command="exit", parent_mode=enable_mode)
-
-sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, username, password)]
-
-cli = CLI()
-
-#----------------------------------------------------------
-# extract a session from the pool, switch to config mode, send the command, and return the session to the pool
-# when "with" block finished:
-with cli.get_session(sessions, config_mode) as cli_service:
-    output = cli_service.send_command('show interfaces')
-
-# extract the session, switch to enable mode, send the command and return the session to the pool after the
-# "with" block:
-with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version')
-#----------------------------------------------------------
-# OR switch between the modes by enter_mode command:
-#----------------------------------------------------------
-# extract the session, switch to enable mode, send the command, enter config mode (2nd "with" block),
-# send commands, upon completing the 2nd "with" block, return to the previous mode (enable mode) and 
-# return the session to the pool:
-with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version')
-    with cli_service.enter_mode(config_mode) as config_cli_service:
-        print(config_cli_service.send_command('show interfaces'))
-        output = config_cli_service.send_command('show configuration')
-#----------------------------------------------------------
-
-```
-
-**Example - Switching back to the previous mode**
-
-In the previous example, we learned how to switch from enable_mode to config_mode and send commands in each. Now let's say you're in config_mode and want to return to enable_mode. To do so, simply return to the enable_mode block's indentation and specify your command. 
-
-```python
-from cloudshell.cli.service.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
-
-
-hostname = "192.168.1.1"
-username = "admin"
-password = "admin"
-
-enable_mode = CommandMode('*>')
-config_mode = CommandMode('*#', enter_command="configure", exit_command="exit", parent_mode=enable_mode)
-
-sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, username, password)]
-
-cli = CLI()
-
-with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version')
-    with cli_service.enter_mode(config_mode) as config_cli_service:
-        print(config_cli_service.send_command('show interfaces'))
-        output = config_cli_service.send_command('show configuration')
-    # switch back to enable_mode and send a command
-    cli_service.send_command("some command")
-    
-```
-
-### Action and error maps
-
-In this chapter, we will learn how to set predefined actions to specific cli prompts and responses. For example, what to do in the event of a yes/no prompt or when receiving an "inavlid command" error. 
-
-* **Error map**: Dictionary where the key is the regex pattern of the expected prompt or cli response and the value is the exception message we want to raise. For example, `{r"Invalid command": "Failed to execute command"}`
-* **Action map**: Dictionary where the key is the regex pattern of the expected prompt or cli response and the value is the function to be performed. For Example, `{r"y/n": lambda session, logger: session.send_line("y", logger)}`
-
-**Example:**
-
-```python
-from cloudshell.cli.service.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
-
-
-hostname = "192.168.1.1"
-username = "admin"
-password = "admin"
-
-enable_mode = CommandMode('*>')
-
-sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, username, password)]
-
-cli = CLI()
-
-my_action_map = {r"--More--": lambda session, logger: session.send_line("", logger),  
-                 # "session.send_line(command, logger)" sends command and "Enter" key line break
-                 r"\(yes/no/abort\)": lambda session, logger: session.send_line("abort", logger),
-                }
-my_error_map = {r"^[Ii]nvalid [Cc]ommand": "My error message",
-               }
-with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version', action_map=my_action_map, error_map=my_error_map)
-```
-
