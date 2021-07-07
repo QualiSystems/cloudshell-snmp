@@ -68,10 +68,24 @@ class TestSNMPService(TestCase):
         response = self.snmp_service.get_property(oid)
         assert response, ""
 
-    def test_walk(self, response_service, builder):
+    @patch("cloudshell.snmp.core.snmp_service.univ")
+    def test_walk(self, univ, response_service, builder):
+        univ.ObjectIdentifier.return_value = 2
         expected_response = [Mock(), Mock(), Mock()]
         response_service.return_value.result = expected_response
         self.set_up(builder)
         oid = create_autospec(SnmpMibObject)
-        response = self.snmp_service.get_property(oid)
+        response = self.snmp_service.walk(oid)
+        assert response, expected_response
+
+    @patch("cloudshell.snmp.core.snmp_service.QualiMibTable")
+    @patch("cloudshell.snmp.core.snmp_service.univ")
+    def test_get_multiple_columns(self, univ, mib_table, response_service, builder):
+        univ.ObjectIdentifier.return_value = 2
+        expected_response = [Mock(), Mock(), Mock()]
+        mib_table.create_from_list.return_value = expected_response
+        response_service.return_value.result = expected_response
+        self.set_up(builder)
+        oid = create_autospec(SnmpMibObject)
+        response = self.snmp_service.get_multiple_columns([oid])
         assert response, expected_response
