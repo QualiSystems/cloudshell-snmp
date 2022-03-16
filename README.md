@@ -45,7 +45,7 @@ CloudShell SNMP is highly modular and implements many programming interfaces.
 
 ### SNMP service
 **snmp service** is the service that manages communication with the device. Allowing you to `set`, `get`, `walk` and `get_table` to/from the device.
-Additionally it allows you to add more snmp MIB files by running `update_mib_sources` method
+Additionally it allows you to add more snmp MIB files by running `update_mib_sources` method, or load mib information using `load_mib_tables`.
 Most communication methods requires you to pass either `SnmpMibOid` or `SnmpRawOid`, 
 i.e: `SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)` or `SnmpRawOid('1.3.6.1.2.1.1.4.0')`
 And in the result most of the commands return single or list of `SnmpResponse`, except get_table, since it returns table like dictionary: `QualiMibTable`.
