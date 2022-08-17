@@ -44,7 +44,6 @@ class SnmpService(object):
         :param path: string path to mibs
         """
         mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
-        builder.DirMibSource(path)
         mib_sources = (builder.DirMibSource(path),) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
 
@@ -253,7 +252,7 @@ class SnmpService(object):
             For example, an object to get sysContact can by any of the following:
             [SnmpMibOid('SNMPv2-MIB', 'sysContact'), SnmpRawOid('1.3.6.1.2.1.1.4.0')]
 
-        :return: SnmpResponse
+        :return: List[SnmpResponse]
         """
         response = self._walk(
             snmp_oid_obj,
@@ -359,7 +358,7 @@ class SnmpService(object):
             etc.
             ]
 
-        :return: SnmpResponse
+        :return: QualiMibTable
         """
         result_list = []
         table_name = (
