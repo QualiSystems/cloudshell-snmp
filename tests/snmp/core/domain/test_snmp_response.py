@@ -1,9 +1,14 @@
+import sys
 import unittest
-from unittest.mock import Mock
 
 from pysnmp.entity import engine
 
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
+
+if sys.version_info >= (3, 0):
+    from unittest.mock import Mock
+else:
+    from mock import Mock
 
 
 class TestSnmpResponse(unittest.TestCase):
