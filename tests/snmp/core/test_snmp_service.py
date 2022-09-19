@@ -5,16 +5,17 @@ from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject
 from cloudshell.snmp.core.snmp_service import SnmpService
 
 if sys.version_info >= (3, 0):
-    from unittest.mock import Mock, patch, create_autospec
+    from unittest.mock import Mock, create_autospec, patch
 else:
-    from mock import Mock, patch, create_autospec
+    from mock import Mock, create_autospec, patch
 
 
 @patch("cloudshell.snmp.core.snmp_service.builder")
 @patch("cloudshell.snmp.core.snmp_service.SnmpService._create_response_service")
 class TestSNMPService(TestCase):
     def set_up(
-        self, builder,
+        self,
+        builder,
     ):
         builder.DirMibSource.return_value = "some_path/here/1"
         self.snmp_engine = Mock()

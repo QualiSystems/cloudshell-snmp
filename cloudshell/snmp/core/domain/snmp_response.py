@@ -88,7 +88,7 @@ class SnmpResponse(object):
         self._mib_name = oid[0]
         self._mib_id = oid[1]
         if isinstance(oid[-1], tuple):
-            self._index = ".".join(map(lambda x: x.prettyPrint(), oid[-1]))
+            self._index = ".".join([x.prettyPrint() for x in oid[-1]])
 
     def __str__(self):
         return self.safe_value
