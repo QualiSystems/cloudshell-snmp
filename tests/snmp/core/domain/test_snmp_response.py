@@ -7,7 +7,7 @@ from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 
 
 class TestSnmpResponse(unittest.TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         self._engine = engine.SnmpEngine()
 
     def test_snmp_response(self):
