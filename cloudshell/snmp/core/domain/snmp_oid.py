@@ -58,6 +58,14 @@ class SnmpMibObject(BaseSnmpOid):
         self._custom_mib_sources = custom_mib_sources
         self._object_identity = None
 
+    @property
+    def mib_name(self):
+        return self._mib_name
+
+    @property
+    def object_name(self):
+        return self._object_name
+
     def _create_object_identity(self):
         object_identity = ObjectIdentity(*(self._mib_name, self._object_name))
         if self.index is not None:

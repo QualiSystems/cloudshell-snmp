@@ -44,7 +44,6 @@ class SnmpService(object):
         :param path: string path to mibs
         """
         mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
-        builder.DirMibSource(path)
         mib_sources = (builder.DirMibSource(path),) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
 
@@ -239,6 +238,22 @@ class SnmpService(object):
         get_bulk_flag=None,
         get_bulk_repetitions=DEFAULT_GET_BULK_REPETITIONS,
     ):
+        """Walk snmp operation.
+
+        Load list of appropriate oid values from the device.
+        Can read only a specific chunk of the table by providing stop_oid
+        :param get_bulk_repetitions: Specifies amount of entries to be read
+        in a single request
+        :param get_bulk_flag: Specifies if get_bulk should be used or not
+        :param retry_count: Amount of retires to retrieve required data
+        :param get_subtree: Limits the walk to the current table only.
+        :param stop_oid: an SnmpMibOid or SnmpRawOid object where walk should stop
+        :param snmp_oid_obj: an SnmpMibOid or SnmpRawOid object.
+            For example, an object to get sysContact can by any of the following:
+            [SnmpMibOid('SNMPv2-MIB', 'sysContact'), SnmpRawOid('1.3.6.1.2.1.1.4.0')]
+
+        :return: List[SnmpResponse]
+        """
         response = self._walk(
             snmp_oid_obj,
             stop_oid=stop_oid,
@@ -316,6 +331,51 @@ class SnmpService(object):
             get_bulk_flag=get_bulk_flag,
             get_bulk_repetitions=get_bulk_repetitions,
         )
+
+        result_dict = QualiMibTable.create_from_list(table_name, result_list)
+
+        return result_dict
+
+    def get_multiple_columns(
+        self,
+        snmp_oid_obj_list,
+        retry_count=WALK_RETRY_COUNT,
+        get_bulk_flag=None,
+        get_bulk_repetitions=DEFAULT_GET_BULK_REPETITIONS,
+    ):
+        """Get multiple columns from the table. Based on a walk command.
+
+        Load list of appropriate oid values from the device.
+        :param get_bulk_repetitions: Specifies amount of entries to be read in
+        a single request
+        :param get_bulk_flag: Specifies if get_bulk should be used or not
+        :param retry_count: Amount of retires to retrieve required data
+        :param snmp_oid_obj_list: List of SnmpMibOid or SnmpRawOid objects.
+            For example, an object to get sysContact can by any of the following:
+            [
+            SnmpMibOid('IF-MIB', 'ifName'),
+            SnmpMibOid('IF-MIB', 'ifPhysicalAddress'),
+            etc.
+            ]
+
+        :return: QualiMibTable
+        """
+        result_list = []
+        table_name = (
+            snmp_oid_obj_list[0]
+            .get_object_type(snmp_engine=self._snmp_engine)[0]
+            .getMibSymbol()[1]
+        )
+        for snmp_oid_obj in snmp_oid_obj_list:
+            result_list.extend(
+                self._walk(
+                    snmp_oid_obj,
+                    get_subtree=True,
+                    retry_count=retry_count,
+                    get_bulk_flag=get_bulk_flag,
+                    get_bulk_repetitions=get_bulk_repetitions,
+                )
+            )
 
         result_dict = QualiMibTable.create_from_list(table_name, result_list)
 

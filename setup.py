@@ -22,5 +22,6 @@ setup(
     tests_require=required_for_tests,
     version=version_from_file,
     description="QualiSystems SNMP Python package",
+    long_description="QualiSystems SNMP Python package",
     include_package_data=True,
 )

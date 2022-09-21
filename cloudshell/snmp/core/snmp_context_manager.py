@@ -19,6 +19,9 @@ class SnmpContextManager(object):
         self._get_bulk_flag = get_bulk_flag
 
     def __enter__(self):
+        return self.get_service()
+
+    def get_service(self):
         snmp_service = SnmpService(
             snmp_engine=self._snmp_engine,
             context_id=self._v3_context_engine_id,

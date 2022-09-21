@@ -64,3 +64,4 @@ target/
 .idea
 cloudshell/snmp/test.py
 /cloudshell/snmp/test*.py
+/cloudshell/snmp/snmp_usage.py
