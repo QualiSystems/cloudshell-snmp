@@ -192,8 +192,8 @@ class TestSNMPParametersInit(TestCase):
         self.assertEqual(params.snmp_user, resource_config.snmp_v3_user)
         self.assertEqual(params.snmp_password, resource_config.snmp_v3_password)
         self.assertEqual(params.snmp_private_key, resource_config.snmp_v3_private_key)
-        self.assertEqual(params.auth_protocol, SNMPV3Parameters.AUTH_SHA)
-        self.assertEqual(params.private_key_protocol, SNMPV3Parameters.PRIV_DES)
+        self.assertEqual(params.snmp_auth_protocol, SNMPV3Parameters.AUTH_SHA)
+        self.assertEqual(params.snmp_private_key_protocol, SNMPV3Parameters.PRIV_DES)
 
     def test_snmp_params_helper_creates_v1_params(self):
         resource_config = Mock()

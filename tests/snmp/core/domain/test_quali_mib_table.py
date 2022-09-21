@@ -13,17 +13,17 @@ class TestQualiMibTableInit(TestCase):
         self.table[0]["entPhysicalClass"] = "port"
         self.table[1]["entPhysicalClass"] = "port"
         self.table[2]["entPhysicalClass"] = "port"
-        self.table[3]["entPhysicalClass"] = "port"
+        self.table[3]["entPhysicalClass"] = "chassis"
         self.table[0]["entPhysicalParentRelPos"] = 1
         self.table[1]["entPhysicalParentRelPos"] = 2
         self.table[2]["entPhysicalParentRelPos"] = 3
         self.table[3]["entPhysicalParentRelPos"] = 4
 
     def test_filter_by_column(self):
-        self.assertIsNotNone(self.table.filter_by_column("entPhysicalClass", "port"))
-        self.assertIsInstance(
-            self.table.filter_by_column("entPhysicalClass", "port"), QualiMibTable
-        )
+        result = self.table.filter_by_column("entPhysicalClass", "port")
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, QualiMibTable)
+        self.assertEqual(len(result), 3)
 
     def test_sort_by_column(self):
         self.assertIsNotNone(self.table.sort_by_column("entPhysicalParentRelPos"))
