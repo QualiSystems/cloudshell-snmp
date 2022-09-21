@@ -19,13 +19,20 @@ class SnmpTransport(object):
         snmp_timeout=SNMP_TIMEOUT,
         snmp_retry_count=SNMP_RETRIES_COUNT,
     ):
+        """Add UDP/IPv4 or UDP/IPv6 transport endpoint to SNMP engine.
+
+        :param snmp_engine: SNMP engine instance
+        :param snmp_timeout: SNMP timeout
+        :param snmp_retry_count: SNMP retry count
+        """
         if self._snmp_parameters.ip:
             try:
                 agent_udp_endpoint = socket.getaddrinfo(
-                    host=self._snmp_parameters.ip,
-                    port=self._snmp_parameters.port,
-                    type=socket.SOCK_DGRAM,
-                    proto=socket.IPPROTO_UDP,
+                    self._snmp_parameters.ip,
+                    self._snmp_parameters.port,
+                    0,
+                    socket.SOCK_DGRAM,
+                    socket.IPPROTO_UDP,
                 )[-1][4][:2]
             except socket.gaierror:
                 raise InitializeSNMPException(
@@ -37,8 +44,9 @@ class SnmpTransport(object):
                 "Failed to validate {} hostname".format(self._snmp_parameters.ip),
                 self._logger,
             )
-
-        ip = ip_address("{}".format(agent_udp_endpoint[0]))
+        # fmt: off
+        ip = ip_address(u"{}".format(agent_udp_endpoint[0]))
+        # fmt: on
         if isinstance(ip, IPv6Address):
             config.addSocketTransport(
                 snmp_engine,
