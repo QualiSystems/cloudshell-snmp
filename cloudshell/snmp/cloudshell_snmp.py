@@ -1,6 +1,8 @@
-from pysnmp.entity import config, engine
+from pysnmp.entity import config
 
 from cloudshell.snmp.core.snmp_context_manager import SnmpContextManager
+from cloudshell.snmp.core.snmp_engine import QualiSnmpEngine
+from cloudshell.snmp.core.snmp_msg_pdu_dsp import QualiMsgAndPduDispatcher
 from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 from cloudshell.snmp.core.tools.snmp_context import SnmpContext
 from cloudshell.snmp.core.tools.snmp_parameters_helper import SnmpParametersConverter
@@ -39,7 +41,7 @@ class Snmp(object):
 
         :param cloudshell.snmp.core.tools.snmp_parameters_helper.SnmpParametersConverter pysnmp_params:  # noqa: E501
         """
-        snmp_engine = engine.SnmpEngine()
+        snmp_engine = QualiSnmpEngine(msg_pdu_dsp=QualiMsgAndPduDispatcher())
         config.addTargetParams(
             snmp_engine,
             "pms",
