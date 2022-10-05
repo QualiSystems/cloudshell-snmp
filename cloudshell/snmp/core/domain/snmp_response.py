@@ -1,7 +1,6 @@
 from pysnmp.error import PySnmpError
 from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.error import SmiError
-from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 from cloudshell.snmp.core.snmp_errors import TranslateSNMPException
 
@@ -9,6 +8,7 @@ from cloudshell.snmp.core.snmp_errors import TranslateSNMPException
 class SnmpResponse(object):
     def __init__(self, oid, value, snmp_engine, logger):
         self._raw_oid = oid
+        self._engine = snmp_engine
         self._snmp_mib_translator = CommandGeneratorVarBinds.getMibViewController(
             snmp_engine
         )
@@ -17,8 +17,10 @@ class SnmpResponse(object):
         self._mib_name = None
         self._index = None
         self._raw_value = value
-        self._object_id = ObjectIdentity(self._raw_oid)
-        self._object_type = ObjectType(self._object_id, self._raw_value)
+        self._object_id = self._engine.build_helper.get_obj_identity(self._raw_oid)
+        self._object_type = self._engine.build_helper.get_obj_type(
+            self._object_id, self._raw_value
+        )
 
     @property
     def _object_identity(self):

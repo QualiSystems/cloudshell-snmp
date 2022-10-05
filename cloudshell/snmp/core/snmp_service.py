@@ -3,12 +3,12 @@ import time
 
 from pyasn1.type import univ
 from pysnmp.proto.errind import requestTimedOut
-from pysnmp.smi import builder
 
 from cloudshell.snmp.core.domain.quali_mib_table import QualiMibTable
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 from cloudshell.snmp.core.snmp_errors import GeneralSNMPException, ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
+from cloudshell.snmp.core.tools.mib_builder_helper import QualiDirMibSource
 
 
 class SnmpService(object):
@@ -43,8 +43,8 @@ class SnmpService(object):
          They will be used to translate snmp responses.
         :param path: string path to mibs
         """
-        mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
-        mib_sources = (builder.DirMibSource(path),) + mib_builder.getMibSources()
+        mib_builder = self._snmp_engine.getMibBuilder()
+        mib_sources = (QualiDirMibSource(path),) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
 
     def load_mib_tables(self, mib_list):
@@ -53,7 +53,7 @@ class SnmpService(object):
         :param mib_list: List of MIB names,
             for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
-        mib_builder = self._snmp_engine.msgAndPduDsp.mibInstrumController.mibBuilder
+        mib_builder = self._snmp_engine.getMibBuilder()
         if isinstance(mib_list, str):
             mib_list = [mib_list]
 
@@ -61,7 +61,7 @@ class SnmpService(object):
             mib_builder.loadModules(mib)
 
     def translate_oid(self, snmp_oid):
-        """Translates Raw OID into a human readable identifiers.
+        """Translates Raw OID into a human-readable identifiers.
 
         :param str snmp_oid: OID string. like: '1.3.6.1.2.1.1.4.0'
         :return translated OID name
@@ -76,7 +76,7 @@ class SnmpService(object):
     def set(self, snmp_set_oids):  # noqa: A003
         """SNMP Set operation.
 
-        Set appropriate oid value on the device
+        Set appropriate oid value on the device.
         :param snmp_set_oids: list or single SnmpSetMibName and/or
             SnmpSetRawOid object to set.
             For example, to set sysContact:
