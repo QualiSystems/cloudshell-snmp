@@ -1,6 +1,7 @@
 import os
 import time
 
+from line_profiler_pycharm import profile
 from pyasn1.type import univ
 from pysnmp.proto.errind import requestTimedOut
 
@@ -44,8 +45,10 @@ class SnmpService(object):
         :param path: string path to mibs
         """
         mib_builder = self._snmp_engine.getMibBuilder()
-        mib_sources = (QualiDirMibSource(path),) + mib_builder.getMibSources()
+        path_to_add = QualiDirMibSource(path)
+        mib_sources = (path_to_add,) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
+        path_to_add.preload(mib_builder)
 
     def load_mib_tables(self, mib_list):
         """Load all MIB tables provided in incoming mib_list one by one.
@@ -264,6 +267,7 @@ class SnmpService(object):
         )
         return list(response)
 
+    @profile
     def _walk(
         self,
         snmp_oid_obj,
@@ -336,6 +340,7 @@ class SnmpService(object):
 
         return result_dict
 
+    @profile
     def get_multiple_columns(
         self,
         snmp_oid_obj_list,
