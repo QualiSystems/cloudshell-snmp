@@ -12,4 +12,4 @@ class QualiSnmpEngine(SnmpEngine):
             msgAndPduDsp=msg_pdu_dsp,
         )
         self.build_helper = MibBuilderHelper(self.getMibBuilder())
-        self._mib_view = CommandGeneratorVarBinds.getMibViewController(self)
+        self.mib_view = CommandGeneratorVarBinds.getMibViewController(self)

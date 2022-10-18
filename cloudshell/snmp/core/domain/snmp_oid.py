@@ -5,20 +5,30 @@ from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 
 class BaseSnmpOid(object):
+    def __init__(self, asn_mib_sources=None, custom_mib_sources=None):
+        self._asn_mib_sources = asn_mib_sources
+        self._custom_mib_sources = custom_mib_sources
+        self._mib_oid = None
+        self._oid = None
+        self.value = None
+
     @abstractmethod
-    def get_object_type(self, snmp_engine):
+    def _create_object_identity(self):
         pass
 
     @abstractmethod
     def get_oid(self, snmp_engine):
         pass
 
+    @abstractmethod
+    def get_object_type(self, snmp_engine):
+        pass
+
 
 class SnmpRawOid(BaseSnmpOid):
     def __init__(self, oid, asn_mib_sources=None, custom_mib_sources=None):
+        super().__init__(asn_mib_sources, custom_mib_sources)
         self._oid = oid
-        self._asn_mib_sources = asn_mib_sources
-        self._custom_mib_sources = custom_mib_sources
 
     def _create_object_identity(self):
         object_identity = ObjectIdentity(self._oid)
@@ -51,6 +61,7 @@ class SnmpMibObject(BaseSnmpOid):
         asn_mib_sources=None,
         custom_mib_sources=None,
     ):
+        super().__init__(asn_mib_sources, custom_mib_sources)
         self._mib_name = mib_name
         self._object_name = object_name
         self.index = index
@@ -82,7 +93,6 @@ class SnmpMibObject(BaseSnmpOid):
         return object_identity
 
     def get_oid(self, snmp_engine):
-
         return self.get_object_type(snmp_engine)[0].getOid()
 
     def get_object_type(self, snmp_engine):
@@ -125,6 +135,7 @@ class SnmpSetMibName(SnmpMibObject):
             mib_name, mib_id, index, asn_mib_sources, custom_mib_sources
         )
         self.value = value
+        self._mib_oid = (self._mib_name, self._object_name)
 
     def get_object_type(self, snmp_engine):
         mib_view = CommandGeneratorVarBinds().getMibViewController(

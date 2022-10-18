@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 
 from pyasn1.type.univ import ObjectIdentifier
@@ -8,6 +9,11 @@ from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 class QualiDirMibSource(DirMibSource):
     def read_json(self, mib_name):
         return self._getData(f"{mib_name}.json", "r")
+
+    def preload(self, mib_builder):
+        for file in os.listdir(self._srcName):
+            if file.endswith(".json"):
+                mib_builder.json_mib_parser.load_json_mib(file.replace(".json", ""))
 
 
 class MibBuilderHelper:
@@ -34,7 +40,7 @@ class MibBuilderHelper:
         return next(
             (
                 value.load_mib_symbol(target_oid)
-                for mib, value in self._mib_builder.json_mib_parser.json_mibs.items()
+                for value in self._mib_builder.json_mib_parser.json_mibs.values()
                 if target_oid in value.mib_symbols
             ),
             None,

@@ -2,6 +2,7 @@ import sys
 from unittest import TestCase
 
 from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject
+from cloudshell.snmp.core.snmp_engine import QualiSnmpEngine
 from cloudshell.snmp.core.snmp_service import SnmpService
 
 if sys.version_info >= (3, 0):
@@ -10,15 +11,11 @@ else:
     from mock import Mock, create_autospec, patch
 
 
-@patch("cloudshell.snmp.core.snmp_service.builder")
+# @patch("cloudshell.snmp.core.snmp_service.builder")
 @patch("cloudshell.snmp.core.snmp_service.SnmpService._create_response_service")
 class TestSNMPService(TestCase):
-    def set_up(
-        self,
-        builder,
-    ):
-        builder.DirMibSource.return_value = "some_path/here/1"
-        self.snmp_engine = Mock()
+    def setUp(self):
+        self.snmp_engine = QualiSnmpEngine()
         mib_instrum_controller = self.snmp_engine.msgAndPduDsp.mibInstrumController
         mib_instrum_controller.mibBuilder.getMibSources.return_value = (
             "some_path/here/2",
@@ -36,10 +33,10 @@ class TestSNMPService(TestCase):
             is_snmp_read_only=True,
         )
 
-    def test_get(self, response_service, builder):
+    # def test_get(self, response_service, builderbuilder):
+    def test_get(self, response_service):
         expected_response = Mock()
         response_service.return_value.result = [expected_response]
-        self.set_up(builder)
         oid = create_autospec(SnmpMibObject)
         response = self.snmp_service.get(oid)
         assert response, expected_response
