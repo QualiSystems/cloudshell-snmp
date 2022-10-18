@@ -93,10 +93,11 @@ class TestSNMP(TestCase):
 
     @patch("cloudshell.snmp.cloudshell_snmp.SnmpSecurity")
     @patch("cloudshell.snmp.cloudshell_snmp.SnmpTransport")
-    @patch("cloudshell.snmp.cloudshell_snmp.engine")
+    @patch("cloudshell.snmp.cloudshell_snmp.QualiSnmpEngine")
+    @patch("cloudshell.snmp.cloudshell_snmp.QualiMsgAndPduDispatcher")
     @patch("cloudshell.snmp.cloudshell_snmp.config")
     def test_get_snmp_engine(
-        self, mock_config, mock_engine, mock_transport, mock_security
+        self, mock_config, mock_dsp, mock_engine, mock_transport, mock_security
     ):
         logger = Mock()
         pysnmp_params = Mock()
@@ -104,9 +105,9 @@ class TestSNMP(TestCase):
 
         snmp._get_snmp_engine(logger=logger, pysnmp_params=pysnmp_params)
 
-        mock_engine.SnmpEngine.assert_called_once_with()
+        mock_engine.assert_called_once_with(msg_pdu_dsp=mock_dsp.return_value)
         mock_config.addTargetParams.assert_called_once_with(
-            mock_engine.SnmpEngine.return_value,
+            mock_engine.return_value,
             "pms",
             pysnmp_params.user,
             pysnmp_params.security,
@@ -116,7 +117,7 @@ class TestSNMP(TestCase):
             snmp_parameters=pysnmp_params.snmp_parameters, logger=logger
         )
         mock_transport.return_value.add_udp_endpoint.assert_called_once_with(
-            mock_engine.SnmpEngine.return_value,
+            mock_engine.return_value,
             snmp._snmp_timeout,
             snmp._snmp_retry_count,
         )
@@ -124,5 +125,5 @@ class TestSNMP(TestCase):
             py_snmp_params=pysnmp_params, logger=logger
         )
         mock_security.return_value.add_security.assert_called_once_with(
-            mock_engine.SnmpEngine.return_value
+            mock_engine.return_value
         )
