@@ -21,11 +21,11 @@ class MibBuilderHelper:
         self._mib_builder = mib_builder
         self._snmp_object_type_map = defaultdict(dict)
         self._snmp_object_map = {}
+        self._loaded_symbols = []
 
     def get_obj_identity(self, oid):
-        object_identity = self.get_object(oid)
-        if object_identity is None:
-            object_identity = ObjectIdentity(oid)
+        self.get_object(oid)
+        object_identity = ObjectIdentity(oid)
         return object_identity
 
     def get_obj_type(self, object_identity, value):
@@ -37,11 +37,17 @@ class MibBuilderHelper:
 
     def get_object(self, oid):
         target_oid = str(oid)
-        return next(
-            (
-                value.load_mib_symbol(target_oid)
-                for value in self._mib_builder.json_mib_parser.json_mibs.values()
-                if target_oid in value.mib_symbols
-            ),
-            None,
-        )
+        if target_oid in self._loaded_symbols:
+            return
+        mib = self._mib_builder.json_mib_parser.guess_mib_by_oid(target_oid)
+        while not mib:
+            target_oid = target_oid[: target_oid.rfind(".")]
+            if target_oid in self._loaded_symbols:
+                return
+            mib = self._mib_builder.json_mib_parser.guess_mib_by_oid(target_oid)
+            self._loaded_symbols.append(target_oid)
+
+        mib_object = self._mib_builder.json_mib_parser.json_mibs.get(mib)
+        mib_object.load_mib_symbol(target_oid)
+        mib_object.load_mib_type(target_oid)
+        self._loaded_symbols.append(target_oid)
