@@ -24,6 +24,7 @@ class JsonMib:
     }
 
     OBJECT_TYPE_NODE_MAP = {
+        "scalar": "MibScalar",
         "row": "MibTableRow",
         "table": "MibTable",
         "column": "MibTableColumn",
