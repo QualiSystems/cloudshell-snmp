@@ -1,6 +1,5 @@
 from abc import abstractmethod
 
-from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 
@@ -42,9 +41,7 @@ class SnmpRawOid(BaseSnmpOid):
         return self._oid
 
     def get_object_type(self, snmp_engine):
-        mib_view = CommandGeneratorVarBinds().getMibViewController(
-            snmpEngine=snmp_engine
-        )
+        mib_view = snmp_engine.mib_view
         object_identity = self._create_object_identity()
         object_identity.resolveWithMib(mib_view)
         object_type = ObjectType(object_identity)
@@ -96,9 +93,7 @@ class SnmpMibObject(BaseSnmpOid):
         return self.get_object_type(snmp_engine)[0].getOid()
 
     def get_object_type(self, snmp_engine):
-        mib_view = CommandGeneratorVarBinds().getMibViewController(
-            snmpEngine=snmp_engine
-        )
+        mib_view = snmp_engine.mib_view
         object_identity = self._create_object_identity()
         object_identity.resolveWithMib(mib_view)
         object_type = ObjectType(object_identity)
@@ -112,9 +107,7 @@ class SnmpSetRawOid(SnmpRawOid):
         self.value = value
 
     def get_object_type(self, snmp_engine):
-        mib_view = CommandGeneratorVarBinds().getMibViewController(
-            snmpEngine=snmp_engine
-        )
+        mib_view = snmp_engine.mib_view
         object_identity = self._create_object_identity()
         object_type = ObjectType(object_identity, self.value)
         object_type.resolveWithMib(mib_view)
@@ -138,9 +131,7 @@ class SnmpSetMibName(SnmpMibObject):
         self._mib_oid = (self._mib_name, self._object_name)
 
     def get_object_type(self, snmp_engine):
-        mib_view = CommandGeneratorVarBinds().getMibViewController(
-            snmpEngine=snmp_engine
-        )
+        mib_view = snmp_engine.mib_view
         object_identity = self._create_object_identity()
         object_type = ObjectType(object_identity, self.value)
         object_type.resolveWithMib(mib_view)

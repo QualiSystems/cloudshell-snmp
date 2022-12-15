@@ -17,8 +17,8 @@ class SnmpResponse(object):
         self._mib_name = None
         self._index = None
         self._raw_value = value
-        self._object_id = self._engine.build_helper.get_obj_identity(self._raw_oid)
-        self._object_type = self._engine.build_helper.get_obj_type(
+        self._object_id = snmp_engine.build_helper.get_obj_identity(self._raw_oid)
+        self._object_type = snmp_engine.build_helper.get_obj_type(
             self._object_id, self._raw_value
         )
 
