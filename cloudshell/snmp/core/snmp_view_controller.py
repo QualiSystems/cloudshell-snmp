@@ -26,6 +26,8 @@ class QualiViewController:
         )
 
         with self._lock:
+            if self.last_build_id == self.mib_builder.lastBuildId:
+                return
             self._mibSymbolsIdx.clear()
 
             def _sort_fun(x, b=self.mib_builder):

@@ -40,7 +40,9 @@ class JsonMib:
         self._snmp_object_map = defaultdict(JsonMibRecord)
         self._snmp_table_map = defaultdict(list)
         self._snmp_type_map = defaultdict(JsonMibType)
-        self._thread = Thread(target=self._build_map, args=(mib_name, mib_json))
+        self._thread = Thread(
+            name=mib_name, target=self._build_map, args=(mib_name, mib_json)
+        )
         self._thread.start()
 
     @property
@@ -69,10 +71,11 @@ class JsonMib:
                     key: value.title().replace("-", "")
                 }
             if not self._mib_builder.mibSymbols.get(key):
-                self._mib_parser.load_json_mib(key)
-                snmp_object_type_map.update(
-                    self._mib_parser.json_mibs[key].snmp_object_type_map
-                )
+                json_mib = self._mib_parser.json_mibs.get(key)
+                if not json_mib:
+                    self._mib_parser.load_json_mib(key)
+                    json_mib = self._mib_parser.json_mibs.get(key)
+                snmp_object_type_map.update(json_mib.snmp_object_type_map)
         return snmp_object_type_map
 
     def json_mib_destroy(self):
