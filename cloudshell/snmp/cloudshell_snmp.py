@@ -41,7 +41,9 @@ class Snmp(object):
 
         :param cloudshell.snmp.core.tools.snmp_parameters_helper.SnmpParametersConverter pysnmp_params:  # noqa: E501
         """
-        snmp_engine = QualiSnmpEngine(msg_pdu_dsp=QualiMsgAndPduDispatcher())
+        snmp_engine = QualiSnmpEngine(
+            msg_pdu_dsp=QualiMsgAndPduDispatcher(), logger=logger
+        )
         config.addTargetParams(
             snmp_engine,
             "pms",
