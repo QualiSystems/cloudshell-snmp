@@ -1,4 +1,3 @@
-from line_profiler_pycharm import profile
 from pysnmp.smi import builder
 from pysnmp.smi.error import MibNotFoundError
 
@@ -10,7 +9,6 @@ class QualiMibBuilder(builder.MibBuilder):
         super().__init__()
         self.json_mib_parser = JsonMibParser(self)
 
-    @profile
     def load_mib_symbols(self, mib_name, *sym_names):
         json_mib = self.json_mib_parser.json_mibs.get(mib_name)
         if json_mib:
@@ -33,7 +31,6 @@ class QualiMibBuilder(builder.MibBuilder):
             if symbol:
                 return symbol
 
-    @profile
     def load_mib_types(self, mib_name, sym_name, **user_ctx):
         mib = self.mibSymbols.get(mib_name, {})
         if mib:
@@ -58,14 +55,12 @@ class QualiMibBuilder(builder.MibBuilder):
             ):
                 json_mib.load_mib_type(sym_name)
 
-    @profile
     def importSymbols(self, modName, *symNames, **userCtx):
         if modName in self.json_mib_parser.json_mibs:
             self.load_mib_symbols(modName, *symNames)
 
         return super().importSymbols(modName, *symNames, **userCtx)
 
-    @profile
     def loadModule(self, modName, **userCtx):
         if modName in self.json_mib_parser.json_mibs:
             return
