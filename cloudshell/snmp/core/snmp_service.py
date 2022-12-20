@@ -1,7 +1,6 @@
 import os
 import time
 
-from line_profiler_pycharm import profile
 from pyasn1.type import univ
 from pysnmp.proto.errind import requestTimedOut
 
@@ -267,7 +266,6 @@ class SnmpService(object):
         )
         return list(response)
 
-    @profile
     def _walk(
         self,
         snmp_oid_obj,
@@ -340,7 +338,6 @@ class SnmpService(object):
 
         return result_dict
 
-    @profile
     def get_multiple_columns(
         self,
         snmp_oid_obj_list,
