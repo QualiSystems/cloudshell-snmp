@@ -105,7 +105,9 @@ class TestSNMP(TestCase):
 
         snmp._get_snmp_engine(logger=logger, pysnmp_params=pysnmp_params)
 
-        mock_engine.assert_called_once_with(msg_pdu_dsp=mock_dsp.return_value)
+        mock_engine.assert_called_once_with(
+            msg_pdu_dsp=mock_dsp.return_value, logger=logger
+        )
         mock_config.addTargetParams.assert_called_once_with(
             mock_engine.return_value,
             "pms",
