@@ -43,7 +43,7 @@ class SnmpService(object):
          They will be used to translate snmp responses.
         :param path: string path to mibs
         """
-        mib_builder = self._snmp_engine.getMibBuilder()
+        mib_builder = self._snmp_engine.mib_builder
         path_to_add = QualiDirMibSource(path)
         mib_sources = (path_to_add,) + mib_builder.getMibSources()
         mib_builder.setMibSources(*mib_sources)
