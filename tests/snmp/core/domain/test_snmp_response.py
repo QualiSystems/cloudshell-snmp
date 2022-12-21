@@ -1,9 +1,9 @@
 import sys
 import unittest
 
-from pysnmp.entity import engine
-
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
+from cloudshell.snmp.core.snmp_engine import QualiSnmpEngine
+from cloudshell.snmp.core.snmp_msg_pdu_dsp import QualiMsgAndPduDispatcher
 
 if sys.version_info >= (3, 0):
     from unittest.mock import Mock
@@ -13,7 +13,9 @@ else:
 
 class TestSnmpResponse(unittest.TestCase):
     def setUp(self):
-        self._engine = engine.SnmpEngine()
+        self._engine = QualiSnmpEngine(
+            msg_pdu_dsp=QualiMsgAndPduDispatcher(), logger=Mock()
+        )
 
     def test_snmp_response(self):
         oid = "1.3.6.1.2.1.1.1.0"
