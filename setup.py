@@ -20,6 +20,7 @@ setup(
     install_requires=required,
     test_suite="tests",
     tests_require=required_for_tests,
+    python_requires="~=3.7",
     version=version_from_file,
     description="QualiSystems SNMP Python package",
     long_description="QualiSystems SNMP Python package",
