@@ -1,28 +1,25 @@
-import sys
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 from cloudshell.snmp.snmp_configurator import EnableDisableSnmpConfigurator
-
-if sys.version_info >= (3, 0):
-    from unittest.mock import Mock, patch
-else:
-    from mock import Mock, patch
 
 
 class TestSNMPConfiguratorInit(TestCase):
     @patch("cloudshell.snmp.snmp_configurator.Snmp")
-    @patch("cloudshell.snmp.snmp_configurator.SnmpParametersHelper")
+    @patch("cloudshell.snmp.snmp_configurator.get_snmp_parameters_from_config")
     def test_enable_disable_snmp_configurator_init(
         self, smp_params_helper_mock, snmp_mock
     ):
         resource_config = Mock()
-        resource_config.enable_snmp = "True"
-        resource_config.disable_snmp = "True"
+        resource_config.enable_snmp = True
+        resource_config.disable_snmp = True
         logger = Mock()
         enable_disable_flow = Mock()
 
-        config = EnableDisableSnmpConfigurator(
-            enable_disable_flow, resource_config, logger
+        config = EnableDisableSnmpConfigurator.from_config(
+            enable_disable_snmp_flow=enable_disable_flow,
+            conf=resource_config,
+            logger=logger,
         )
         config.get_service()
 

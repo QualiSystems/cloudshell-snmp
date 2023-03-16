@@ -1,18 +1,17 @@
 import sys
 from unittest import TestCase
+from unittest.mock import Mock
+
+import pytest
 
 from cloudshell.snmp.snmp_parameters import (
     SnmpParameters,
-    SnmpParametersHelper,
     SNMPReadParameters,
     SNMPV3Parameters,
     SNMPWriteParameters,
+    get_snmp_parameters_from_config,
 )
-
-if sys.version_info >= (3, 0):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
+from cloudshell.snmp.types import SNMPConfigProtocol
 
 
 class TestSNMPParametersInit(TestCase):
@@ -159,49 +158,71 @@ class TestSNMPParametersInit(TestCase):
         self.assertEqual(valid_instance.snmp_password, "")
         self.assertEqual(valid_instance.snmp_private_key, "")
 
-    def test_snmp_params_helper_creates_read_params(self):
-        resource_config = Mock()
-        resource_config.snmp_version = "2"
-        resource_config.snmp_read_community = "public"
-        resource_config.snmp_write_community = ""
-        helper = SnmpParametersHelper(resource_config)
-        params = helper.get_snmp_parameters()
-        self.assertEqual(params.ip, resource_config.address)
-        self.assertEqual(params.snmp_community, resource_config.snmp_read_community)
+    def test_snmp_v1_read(self):
+        conf = Mock(spec=SNMPConfigProtocol)
+        conf.address = "192.168.0.1"
+        conf.snmp_version = Mock(value="1")
+        conf.snmp_read_community = "public"
+        conf.snmp_write_community = ""
 
-    def test_snmp_params_helper_creates_write_params(self):
-        resource_config = Mock()
-        resource_config.snmp_version = "2"
-        resource_config.snmp_write_community = "public1"
-        helper = SnmpParametersHelper(resource_config)
-        params = helper.get_snmp_parameters()
-        self.assertEqual(params.ip, resource_config.address)
-        self.assertEqual(params.snmp_community, resource_config.snmp_write_community)
+        result = get_snmp_parameters_from_config(conf)
+        assert isinstance(result, SNMPReadParameters)
+        assert result.version == SnmpParameters.SnmpVersion.V1
+        assert result.snmp_community == "public"
+        assert result.is_read_only
 
-    def test_snmp_params_helper_creates_v3_params(self):
-        resource_config = Mock()
-        resource_config.snmp_version = "3"
-        resource_config.snmp_v3_user = "user"
-        resource_config.snmp_v3_password = "pass"
-        resource_config.snmp_v3_private_key = "pass"
-        resource_config.snmp_v3_auth_protocol = "SHA"
-        resource_config.snmp_v3_priv_protocol = "DES"
-        helper = SnmpParametersHelper(resource_config)
-        params = helper.get_snmp_parameters()
-        self.assertEqual(params.ip, resource_config.address)
-        self.assertEqual(params.snmp_user, resource_config.snmp_v3_user)
-        self.assertEqual(params.snmp_password, resource_config.snmp_v3_password)
-        self.assertEqual(params.snmp_private_key, resource_config.snmp_v3_private_key)
-        self.assertEqual(params.snmp_auth_protocol, SNMPV3Parameters.AUTH_SHA)
-        self.assertEqual(params.snmp_private_key_protocol, SNMPV3Parameters.PRIV_DES)
+    def test_snmp_v2_write(self):
+        conf = Mock(spec=SNMPConfigProtocol)
+        conf.address = "192.168.0.1"
+        conf.snmp_version = Mock(value="2")
+        conf.snmp_read_community = "public"
+        conf.snmp_write_community = "private"
+        result = get_snmp_parameters_from_config(conf)
+        assert isinstance(result, SNMPWriteParameters)
+        assert result.version == SnmpParameters.SnmpVersion.V2
+        assert result.snmp_community == "private"
+        assert not result.is_read_only
 
-    def test_snmp_params_helper_creates_v1_params(self):
-        resource_config = Mock()
-        resource_config.snmp_version = "1"
-        resource_config.snmp_read_community = "public"
-        resource_config.snmp_write_community = ""
-        helper = SnmpParametersHelper(resource_config)
-        params = helper.get_snmp_parameters()
-        self.assertEqual(params.ip, resource_config.address)
-        self.assertEqual(params.snmp_community, resource_config.snmp_read_community)
-        self.assertEqual(params.version, SnmpParameters.SnmpVersion.V1)
+    def test_snmp_v3(self):
+        conf = Mock(spec=SNMPConfigProtocol)
+        conf.address = "192.168.0.1"
+        conf.snmp_version = Mock(value="3")
+        conf.snmp_v3_user = "user"
+        conf.snmp_v3_password = "password"
+        conf.snmp_v3_private_key = "private_key"
+        conf.snmp_v3_auth_protocol = Mock(value="MD5")
+        conf.snmp_v3_priv_protocol = Mock(value="AES-128")
+        result = get_snmp_parameters_from_config(conf)
+        assert isinstance(result, SNMPV3Parameters)
+        assert result.version == SnmpParameters.SnmpVersion.V3
+        assert result.snmp_user == "user"
+        assert result.snmp_password == "password"
+        assert result.snmp_private_key == "private_key"
+        assert result.snmp_auth_protocol == SNMPV3Parameters.AUTH_MD5
+        assert result.snmp_private_key_protocol == SNMPV3Parameters.PRIV_AES128
+        assert not result.is_read_only
+
+    def test_snmp_unknown_version(self):
+        conf = Mock(spec=SNMPConfigProtocol)
+        conf.address = "192.168.0.1"
+        conf.snmp_version = Mock(value="5")
+        with pytest.raises(Exception, match="Unknown SNMP version 5"):
+            get_snmp_parameters_from_config(conf)
+
+    def test_snmp_ip_invalid(self):
+        conf = Mock(spec=SNMPConfigProtocol)
+        conf.address = ""
+        conf.snmp_read_community = "public"
+        conf.snmp_write_community = "private"
+        conf.snmp_version = Mock(value="1")
+        with pytest.raises(Exception, match="SNMP host is not defined"):
+            get_snmp_parameters_from_config(conf)
+
+    def test_snmp_community_invalid(self):
+        conf = Mock(spec=SNMPConfigProtocol)
+        conf.address = "1.2.3.4"
+        conf.snmp_read_community = ""
+        conf.snmp_write_community = ""
+        conf.snmp_version = Mock(value="1")
+        with pytest.raises(Exception, match="SNMP community is not defined"):
+            get_snmp_parameters_from_config(conf)
