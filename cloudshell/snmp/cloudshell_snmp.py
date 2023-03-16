@@ -15,7 +15,7 @@ class Snmp(object):
         self._snmp_timeout = timeout
         self._snmp_retry_count = retry_count
 
-    def get_snmp_service(self, snmp_parameters, logger):
+    def get_snmp_service(self, snmp_parameters, logger) -> SnmpContextManager:
         """Get SNMP service.
 
         :param cloudshell.snmp.snmp_parameters.SnmpV2Parameters snmp_parameters:

@@ -1,4 +1,4 @@
-import warnings
+from cloudshell.snmp.types import SNMPConfigProtocol
 
 
 class SnmpParameters(object):
@@ -48,6 +48,11 @@ class SNMPReadParameters(SnmpParameters):
         self.is_read_only = True
         self.version = version
 
+    def validate(self):
+        super(SNMPReadParameters, self).validate()
+        if not self.snmp_community:
+            raise Exception("SNMP community is not defined")
+
 
 class SNMPWriteParameters(SNMPReadParameters):
     def __init__(
@@ -90,8 +95,8 @@ class SNMPV3Parameters(SnmpParameters):
         snmp_password,
         snmp_private_key,
         port=161,
-        auth_protocol=AUTH_NO_AUTH,
-        private_key_protocol=PRIV_NO_PRIV,
+        snmp_auth_protocol=AUTH_NO_AUTH,
+        snmp_private_key_protocol=PRIV_NO_PRIV,
         context_engine_id=None,
         context_name="",
     ):
@@ -115,50 +120,8 @@ class SNMPV3Parameters(SnmpParameters):
         self.snmp_user = snmp_user
         self.snmp_password = snmp_password
         self.snmp_private_key = snmp_private_key
-        self.snmp_auth_protocol = auth_protocol
-        self.snmp_private_key_protocol = private_key_protocol
-
-    # For backward compatibility auth_protocol and private_key_protocol
-    @property
-    def auth_protocol(self):
-        warnings.warn(
-            "auth_protocol is obsolete please use snmp_auth_protocol field instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.snmp_auth_protocol
-
-    @auth_protocol.setter
-    def auth_protocol(self, value):
-        warnings.warn(
-            "auth_protocol is obsolete please use snmp_auth_protocol field instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.snmp_auth_protocol = value
-
-    @property
-    def private_key_protocol(self):
-        warnings.warn(
-            "private_key_protocol is obsolete please "
-            "use snmp_private_key_protocol "
-            "field instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.snmp_private_key_protocol
-
-    @private_key_protocol.setter
-    def private_key_protocol(self, value):
-        warnings.warn(
-            "private_key_protocol is obsolete please "
-            "use snmp_private_key_protocol "
-            "field instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.snmp_private_key_protocol = value
+        self.snmp_auth_protocol = snmp_auth_protocol
+        self.snmp_private_key_protocol = snmp_private_key_protocol
 
     def validate(self):
         super(SNMPV3Parameters, self).validate()
@@ -221,35 +184,30 @@ class SNMPV3Parameters(SnmpParameters):
         return self
 
 
-class SnmpParametersHelper(object):
-    def __init__(self, resource_config):
-        """SNMP Parameter Helper.
+def get_snmp_parameters_from_config(conf: SNMPConfigProtocol) -> SnmpParameters:
+    """Generate SNMP parameters from resource config."""
+    snmp_params = None
+    if "3" in conf.snmp_version.value:
+        snmp_params = SNMPV3Parameters(
+            ip=conf.address,
+            snmp_user=conf.snmp_v3_user,
+            snmp_password=conf.snmp_v3_password,
+            snmp_private_key=conf.snmp_v3_private_key,
+            snmp_auth_protocol=conf.snmp_v3_auth_protocol.value,
+            snmp_private_key_protocol=conf.snmp_v3_priv_protocol.value,
+        )
+    elif "2" in conf.snmp_version.value or "1" in conf.snmp_version.value:
+        version = SnmpParameters.SnmpVersion.V2
+        if "1" in conf.snmp_version.value:
+            version = SnmpParameters.SnmpVersion.V1
 
-        :type resource_config: cloudshell.shell.standards.resource_config_generic_models.GenericSnmpConfig  # noqa E501
-        """
-        self._resource_config = resource_config
-
-    def get_snmp_parameters(self):
-        if "3" in self._resource_config.snmp_version:
-            return SNMPV3Parameters(
-                ip=self._resource_config.address,
-                snmp_user=self._resource_config.snmp_v3_user,
-                snmp_password=self._resource_config.snmp_v3_password,
-                snmp_private_key=self._resource_config.snmp_v3_private_key,
-                auth_protocol=self._resource_config.snmp_v3_auth_protocol,
-                private_key_protocol=self._resource_config.snmp_v3_priv_protocol,
-            )
+        community = conf.snmp_write_community
+        if community:
+            snmp_params = SNMPWriteParameters(conf.address, community, version=version)
         else:
-            version = SnmpParameters.SnmpVersion.V2
-            if "1" in self._resource_config.snmp_version:
-                version = SnmpParameters.SnmpVersion.V1
-
-            community = self._resource_config.snmp_write_community
-            if community:
-                return SNMPWriteParameters(
-                    self._resource_config.address, community, version=version
-                )
-            community = self._resource_config.snmp_read_community
-            return SNMPReadParameters(
-                self._resource_config.address, community, version=version
-            )
+            community = conf.snmp_read_community
+            snmp_params = SNMPReadParameters(conf.address, community, version=version)
+    if not snmp_params:
+        raise Exception("Unknown SNMP version {}".format(conf.snmp_version.value))
+    snmp_params.validate()
+    return snmp_params

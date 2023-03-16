@@ -1,18 +1,12 @@
-import sys
 from unittest import TestCase
+from unittest.mock import Mock, create_autospec, patch
 
 from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject
 from cloudshell.snmp.core.snmp_engine import QualiSnmpEngine
 from cloudshell.snmp.core.snmp_msg_pdu_dsp import QualiMsgAndPduDispatcher
 from cloudshell.snmp.core.snmp_service import SnmpService
 
-if sys.version_info >= (3, 0):
-    from unittest.mock import Mock, create_autospec, patch
-else:
-    from mock import Mock, create_autospec, patch
 
-
-# @patch("cloudshell.snmp.core.snmp_service.builder")
 @patch("cloudshell.snmp.core.snmp_service.SnmpService._create_response_service")
 class TestSNMPService(TestCase):
     def setUp(self):

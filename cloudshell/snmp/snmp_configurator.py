@@ -1,7 +1,20 @@
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
+from typing import TYPE_CHECKING
 
 from cloudshell.snmp.cloudshell_snmp import Snmp
-from cloudshell.snmp.snmp_parameters import SnmpParametersHelper
+from cloudshell.snmp.snmp_parameters import (
+    SnmpParameters,
+    get_snmp_parameters_from_config,
+)
+from cloudshell.snmp.types import SNMPConfigProtocol
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.snmp.cloudshell_snmp import SnmpContextManager
+
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
@@ -9,29 +22,30 @@ ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 class SnmpConfigurator(object):
     """Create snmp service, according to resource config values."""
 
-    def __init__(self, resource_config, logger, snmp=None):
+    def __init__(self, snmp_parameters, logger, snmp=None):
         """Create snmp service, according to resource config values.
 
         :param cloudshell.shell.standards.resource_config_generic_models.GenericSnmpConfig resource_config:  # noqa: E501
         :param logging.Logger logger:
         :param snmp:
         """
-        self.resource_config = resource_config
         self._logger = logger
         # use like a container
         self._snmp = snmp or Snmp()
-        self._snmp_parameters_helper = SnmpParametersHelper(resource_config)
+        self._snmp_parameters = snmp_parameters
 
-    @property
-    def _snmp_parameters(self):
-        return self._snmp_parameters_helper.get_snmp_parameters()
-
-    def get_service(self):
+    def get_service(self) -> SnmpContextManager:
         """Enable/Disable snmp.
 
         :rtype: SnmpContextManager
         """
         return self._snmp.get_snmp_service(self._snmp_parameters, self._logger)
+
+    @classmethod
+    def from_config(cls, conf: SNMPConfigProtocol, logger: Logger) -> SnmpConfigurator:
+        """Create SnmpConfigurator from config."""
+        snmp_parameters = get_snmp_parameters_from_config(conf)
+        return cls(snmp_parameters, logger)
 
 
 class EnableDisableSnmpFlowInterface(ABC):
@@ -57,12 +71,12 @@ class EnableDisableSnmpManager(object):
 
     def __init__(
         self,
-        enable_disable_flow,
-        snmp_parameters,
-        snmp,
-        logger,
-        enable=True,
-        disable=True,
+        enable_disable_flow: EnableDisableSnmpFlowInterface,
+        snmp_parameters: SnmpParameters,
+        snmp_service: SnmpContextManager,
+        logger: Logger,
+        enable: bool = True,
+        disable: bool = True,
     ):
         """Context manager to enable/disable snmp.
 
@@ -76,7 +90,7 @@ class EnableDisableSnmpManager(object):
         self._enable_disable_flow = enable_disable_flow
         self._snmp_parameters = snmp_parameters
         self._logger = logger
-        self._snmp_manager = snmp.get_snmp_service(self._snmp_parameters, self._logger)
+        self._snmp_manager = snmp_service
         self._enable = enable
         self._disable = disable
 
@@ -94,25 +108,52 @@ class EnableDisableSnmpManager(object):
         self._snmp_manager.__exit__(exc_type, exc_val, exc_tb)
 
 
-class EnableDisableSnmpConfigurator(SnmpConfigurator, ABC):
-    def __init__(self, enable_disable_snmp_flow, resource_config, logger):
-        """Enable Disable SNMP Configurator.
+class EnableDisableSnmpConfigurator(ABC):
+    def __init__(
+        self,
+        enable_disable_snmp_flow: EnableDisableSnmpFlowInterface,
+        snmp_parameters: SnmpParameters,
+        enable_snmp: bool,
+        disable_snmp: bool,
+        logger: Logger,
+    ):
+        """Enable Disable SNMP Configurator."""
+        assert enable_disable_snmp_flow, "Enable Disable Snmp Flow class can't be empty"
+        assert snmp_parameters, "SnmpParameters can't be empty"
 
-        :param EnableDisableSnmpFlowInterface enable_disable_snmp_flow:
-        :param resource_config:
-        :param logger:
-        """
-        super(EnableDisableSnmpConfigurator, self).__init__(resource_config, logger)
+        self._logger = logger
         self._enable_disable_snmp_flow = enable_disable_snmp_flow
+        self._snmp_parameters = snmp_parameters
+        self._snmp_configurator = SnmpConfigurator(
+            snmp_parameters=snmp_parameters, logger=logger
+        )
+        self._enable_disable_snmp_flow = enable_disable_snmp_flow
+        self._enable_snmp = enable_snmp
+        self._disable_snmp = disable_snmp
 
     def get_service(self):
-        enable = self.resource_config.enable_snmp.lower() == str(True).lower()
-        disable = self.resource_config.disable_snmp.lower() == str(True).lower()
         return EnableDisableSnmpManager(
-            self._enable_disable_snmp_flow,
-            self._snmp_parameters,
-            self._snmp,
-            self._logger,
-            enable,
-            disable,
+            enable_disable_flow=self._enable_disable_snmp_flow,
+            snmp_parameters=self._snmp_parameters,
+            snmp_service=self._snmp_configurator.get_service(),
+            logger=self._logger,
+            enable=self._enable_snmp,
+            disable=self._disable_snmp,
+        )
+
+    @classmethod
+    def from_config(
+        cls,
+        enable_disable_snmp_flow: EnableDisableSnmpFlowInterface,
+        conf: SNMPConfigProtocol,
+        logger: Logger,
+    ) -> EnableDisableSnmpConfigurator:
+        """Create Enable Disable Snmp Configurator from config."""
+        snmp_parameters = get_snmp_parameters_from_config(conf)
+        return cls(
+            enable_disable_snmp_flow=enable_disable_snmp_flow,
+            snmp_parameters=snmp_parameters,
+            logger=logger,
+            enable_snmp=conf.enable_snmp,
+            disable_snmp=conf.disable_snmp,
         )

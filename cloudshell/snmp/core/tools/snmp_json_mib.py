@@ -34,7 +34,9 @@ class JsonMib:
         self.mib_name = mib_name
         self.mib_json = mib_json
         self._mib_builder = mib_builder
-        self._snmp_object_types = mib_json.pop("imports")
+        self._snmp_object_types = {}
+        if mib_json:
+            self._snmp_object_types = mib_json.pop("imports")
         self._mib_parser = mib_parser
         self._snmp_object_type_map = None
         self._snmp_object_map = defaultdict(JsonMibRecord)
