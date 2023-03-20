@@ -6,7 +6,7 @@ from cloudshell.snmp.core.tools.snmp_constants import (
 )
 
 
-class SnmpSecurity(object):
+class SnmpSecurity:
     def __init__(self, py_snmp_params, logger):
         self._py_snmp_params = py_snmp_params
         self._logger = logger

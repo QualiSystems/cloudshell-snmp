@@ -1,7 +1,7 @@
 from cloudshell.snmp.core.snmp_service import SnmpService
 
 
-class SnmpContextManager(object):
+class SnmpContextManager:
     def __init__(
         self,
         snmp_engine,

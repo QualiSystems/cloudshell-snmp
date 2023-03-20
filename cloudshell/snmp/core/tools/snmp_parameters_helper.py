@@ -1,4 +1,4 @@
-class SnmpParametersConverter(object):
+class SnmpParametersConverter:
     DEFAULT_USER = "agt"
     NO_AUTH_NO_PRIV = "noAuthNoPriv"
     AUTH_NO_PRIV = "authNoPriv"

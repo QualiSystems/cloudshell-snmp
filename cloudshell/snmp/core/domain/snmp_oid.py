@@ -3,7 +3,7 @@ from abc import abstractmethod
 from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 
-class BaseSnmpOid(object):
+class BaseSnmpOid:
     def __init__(self, asn_mib_sources=None, custom_mib_sources=None):
         self._asn_mib_sources = asn_mib_sources
         self._custom_mib_sources = custom_mib_sources
@@ -103,7 +103,7 @@ class SnmpMibObject(BaseSnmpOid):
 
 class SnmpSetRawOid(SnmpRawOid):
     def __init__(self, oid, value, asn_mib_sources=None, custom_mib_sources=None):
-        super(SnmpSetRawOid, self).__init__(oid, asn_mib_sources, custom_mib_sources)
+        super().__init__(oid, asn_mib_sources, custom_mib_sources)
         self.value = value
 
     def get_object_type(self, snmp_engine):
@@ -124,9 +124,7 @@ class SnmpSetMibName(SnmpMibObject):
         asn_mib_sources=None,
         custom_mib_sources=None,
     ):
-        super(SnmpSetMibName, self).__init__(
-            mib_name, mib_id, index, asn_mib_sources, custom_mib_sources
-        )
+        super().__init__(mib_name, mib_id, index, asn_mib_sources, custom_mib_sources)
         self.value = value
         self._mib_oid = (self._mib_name, self._object_name)
 

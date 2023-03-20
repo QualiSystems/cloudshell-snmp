@@ -1,14 +1,9 @@
-import sys
 import unittest
+from unittest.mock import Mock
 
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 from cloudshell.snmp.core.snmp_engine import QualiSnmpEngine
 from cloudshell.snmp.core.snmp_msg_pdu_dsp import QualiMsgAndPduDispatcher
-
-if sys.version_info >= (3, 0):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
 
 
 class TestSnmpResponse(unittest.TestCase):

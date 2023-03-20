@@ -10,7 +10,7 @@ from cloudshell.snmp.core.tools.snmp_security import SnmpSecurity
 from cloudshell.snmp.core.tools.snmp_trasnport import SnmpTransport
 
 
-class Snmp(object):
+class Snmp:
     def __init__(self, timeout=SNMP_TIMEOUT, retry_count=SNMP_RETRIES_COUNT):
         self._snmp_timeout = timeout
         self._snmp_retry_count = retry_count

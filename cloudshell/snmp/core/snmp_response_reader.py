@@ -8,7 +8,7 @@ from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 from cloudshell.snmp.core.snmp_errors import ReadSNMPException
 
 
-class SnmpResponseReader(object):
+class SnmpResponseReader:
     TAGS_TO_SKIP = [
         rfc1905.NoSuchObject.tagSet,
         rfc1905.NoSuchInstance.tagSet,

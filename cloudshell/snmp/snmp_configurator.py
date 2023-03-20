@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 from cloudshell.snmp.cloudshell_snmp import Snmp
@@ -16,19 +16,13 @@ if TYPE_CHECKING:
     from cloudshell.snmp.cloudshell_snmp import SnmpContextManager
 
 
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
-
-
-class SnmpConfigurator(object):
+class SnmpConfigurator:
     """Create snmp service, according to resource config values."""
 
-    def __init__(self, snmp_parameters, logger, snmp=None):
-        """Create snmp service, according to resource config values.
-
-        :param cloudshell.shell.standards.resource_config_generic_models.GenericSnmpConfig resource_config:  # noqa: E501
-        :param logging.Logger logger:
-        :param snmp:
-        """
+    def __init__(
+        self, snmp_parameters: SnmpParameters, logger: Logger, snmp: Snmp = None
+    ):
+        """Create snmp service, according to resource config values."""
         self._logger = logger
         # use like a container
         self._snmp = snmp or Snmp()
@@ -66,7 +60,7 @@ class EnableDisableSnmpFlowInterface(ABC):
         pass
 
 
-class EnableDisableSnmpManager(object):
+class EnableDisableSnmpManager:
     """Context manager to enable/disable snmp."""
 
     def __init__(

@@ -1,7 +1,7 @@
 from cloudshell.snmp.types import SNMPConfigProtocol
 
 
-class SnmpParameters(object):
+class SnmpParameters:
     class SnmpVersion:
         def __init__(self):
             pass
@@ -41,7 +41,7 @@ class SNMPReadParameters(SnmpParameters):
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
         """
-        super(SNMPReadParameters, self).__init__(
+        super().__init__(
             ip, port, context_engine_id=context_engine_id, context_name=context_name
         )
         self.snmp_community = snmp_community
@@ -49,7 +49,7 @@ class SNMPReadParameters(SnmpParameters):
         self.version = version
 
     def validate(self):
-        super(SNMPReadParameters, self).validate()
+        super().validate()
         if not self.snmp_community:
             raise Exception("SNMP community is not defined")
 
@@ -70,7 +70,7 @@ class SNMPWriteParameters(SNMPReadParameters):
         :param str snmp_community: SNMP Read community
         :param int port: SNMP port to use
         """
-        super(SNMPWriteParameters, self).__init__(
+        super().__init__(
             ip, snmp_community, version, port, context_engine_id, context_name
         )
         self.is_read_only = False
@@ -112,7 +112,7 @@ class SNMPV3Parameters(SnmpParameters):
         :param private_key_protocol: a constant of SnmpPrivProtocol class that defines
             what Private protocol to use
         """
-        super(SNMPV3Parameters, self).__init__(
+        super().__init__(
             ip, port, context_engine_id=context_engine_id, context_name=context_name
         )
         self.is_read_only = False
@@ -124,7 +124,7 @@ class SNMPV3Parameters(SnmpParameters):
         self.snmp_private_key_protocol = snmp_private_key_protocol
 
     def validate(self):
-        super(SNMPV3Parameters, self).validate()
+        super().validate()
 
         if not self.snmp_user:
             raise Exception("SNMPv3 user is not defined")
@@ -135,7 +135,7 @@ class SNMPV3Parameters(SnmpParameters):
             self.AUTH_SHA,
         ]:
             raise Exception(
-                "Unknown Authentication Protocol {}".format(self.snmp_auth_protocol)
+                f"Unknown Authentication Protocol {self.snmp_auth_protocol}"
             )
         if self.snmp_private_key_protocol not in [
             self.PRIV_NO_PRIV,
@@ -146,7 +146,7 @@ class SNMPV3Parameters(SnmpParameters):
             self.PRIV_AES256,
         ]:
             raise Exception(
-                "Unknown Privacy Protocol {}".format(self.snmp_private_key_protocol)
+                f"Unknown Privacy Protocol {self.snmp_private_key_protocol}"
             )
 
         if (
@@ -208,6 +208,6 @@ def get_snmp_parameters_from_config(conf: SNMPConfigProtocol) -> SnmpParameters:
             community = conf.snmp_read_community
             snmp_params = SNMPReadParameters(conf.address, community, version=version)
     if not snmp_params:
-        raise Exception("Unknown SNMP version {}".format(conf.snmp_version.value))
+        raise Exception(f"Unknown SNMP version {conf.snmp_version.value}")
     snmp_params.validate()
     return snmp_params
