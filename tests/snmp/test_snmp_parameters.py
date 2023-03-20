@@ -1,4 +1,3 @@
-import sys
 from unittest import TestCase
 from unittest.mock import Mock
 
@@ -56,23 +55,17 @@ class TestSNMPParametersInit(TestCase):
         self.assertTrue(snmp_v3_parameters.snmp_private_key == self.SNMP_PRIVATE_KEY)
 
     def test_snmp_v3_parameters_validate_no_user(self):
-        if sys.version_info >= (3, 0):
-            assert_regex = self.assertRaisesRegex
-        else:
-            assert_regex = self.assertRaisesRegexp
+        assert_regex = self.assertRaisesRegex
 
         with assert_regex(Exception, "SNMPv3 user is not defined"):
             SNMPV3Parameters(Mock(), "", Mock(), Mock()).validate()
 
     def test_snmp_v3_parameters_validate_unknown_auth_protocol(self):
         auth_protocol = "test_auth_protocol"
-        if sys.version_info >= (3, 0):
-            assert_regex = self.assertRaisesRegex
-        else:
-            assert_regex = self.assertRaisesRegexp
+        assert_regex = self.assertRaisesRegex
 
         with assert_regex(
-            Exception, "Unknown Authentication Protocol {}".format(auth_protocol)
+            Exception, f"Unknown Authentication Protocol {auth_protocol}"
         ):
             SNMPV3Parameters(
                 Mock(), "test_user", Mock(), Mock(), Mock(), auth_protocol
@@ -80,14 +73,9 @@ class TestSNMPParametersInit(TestCase):
 
     def test_snmp_v3_parameters_validate_unknown_priv_protocol(self):
         priv_protocol = "test_priv_protocol"
-        if sys.version_info >= (3, 0):
-            assert_regex = self.assertRaisesRegex
-        else:
-            assert_regex = self.assertRaisesRegexp
+        assert_regex = self.assertRaisesRegex
 
-        with assert_regex(
-            Exception, "Unknown Privacy Protocol {}".format(priv_protocol)
-        ):
+        with assert_regex(Exception, f"Unknown Privacy Protocol {priv_protocol}"):
             SNMPV3Parameters(
                 Mock(),
                 "test_user",
@@ -101,13 +89,10 @@ class TestSNMPParametersInit(TestCase):
     def test_snmp_v3_parameters_validate_no_auth_priv(self):
         auth_proto = SNMPV3Parameters.AUTH_NO_AUTH
         priv_protocol = SNMPV3Parameters.PRIV_3DES
-        if sys.version_info >= (3, 0):
-            assert_regex = self.assertRaisesRegex
-        else:
-            assert_regex = self.assertRaisesRegexp
+        assert_regex = self.assertRaisesRegex
 
         with assert_regex(
-            Exception, "{} cannot be used with {}".format(priv_protocol, auth_proto)
+            Exception, f"{priv_protocol} cannot be used with {auth_proto}"
         ):
             SNMPV3Parameters(
                 Mock(), "test_user", Mock(), Mock(), Mock(), auth_proto, priv_protocol
@@ -116,10 +101,7 @@ class TestSNMPParametersInit(TestCase):
     def test_snmp_v3_parameters_validate_auth_no_password(self):
         auth_proto = SNMPV3Parameters.AUTH_MD5
         priv_protocol = SNMPV3Parameters.PRIV_NO_PRIV
-        if sys.version_info >= (3, 0):
-            assert_regex = self.assertRaisesRegex
-        else:
-            assert_regex = self.assertRaisesRegexp
+        assert_regex = self.assertRaisesRegex
 
         with assert_regex(
             Exception,
@@ -134,10 +116,7 @@ class TestSNMPParametersInit(TestCase):
     def test_snmp_v3_parameters_validate_priv_no_priv_key(self):
         auth_proto = SNMPV3Parameters.AUTH_MD5
         priv_protocol = SNMPV3Parameters.PRIV_3DES
-        if sys.version_info >= (3, 0):
-            assert_regex = self.assertRaisesRegex
-        else:
-            assert_regex = self.assertRaisesRegexp
+        assert_regex = self.assertRaisesRegex
 
         with assert_regex(
             Exception,

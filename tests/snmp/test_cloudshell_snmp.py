@@ -1,13 +1,8 @@
-import sys
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 from cloudshell.snmp.cloudshell_snmp import Snmp
 from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
-
-if sys.version_info >= (3, 0):
-    from unittest.mock import Mock, patch
-else:
-    from mock import Mock, patch
 
 
 class TestSNMP(TestCase):

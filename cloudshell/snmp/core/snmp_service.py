@@ -11,7 +11,7 @@ from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 from cloudshell.snmp.core.tools.mib_builder_helper import QualiDirMibSource
 
 
-class SnmpService(object):
+class SnmpService:
     DEFAULT_GET_BULK_REPETITIONS = 25
     WALK_RETRY_COUNT = 2
 
@@ -189,7 +189,7 @@ class SnmpService(object):
         oid = snmp_oid.get_oid(self._snmp_engine)
 
         service = self._create_response_service()
-        stop_oid = "{}{}".format(str(oid)[:-1], int(str(oid)[-1:]) + 1)
+        stop_oid = f"{str(oid)[:-1]}{int(str(oid)[-1:]) + 1}"
         stop_oid = univ.ObjectIdentifier(stop_oid)
         service.send_walk_var_binds(oid=oid, stop_oid=stop_oid)
 
@@ -284,7 +284,7 @@ class SnmpService(object):
         if stop_oid:
             stop_oid = univ.ObjectIdentifier(stop_oid.get_oid(self._snmp_engine))
         elif get_subtree:
-            _stop_oid = "{}{}".format(str(start_oid)[:-1], int(str(start_oid)[-1:]) + 1)
+            _stop_oid = f"{str(start_oid)[:-1]}{int(str(start_oid)[-1:]) + 1}"
             stop_oid = univ.ObjectIdentifier(_stop_oid)
         cb_ctx = {
             "total": 0,

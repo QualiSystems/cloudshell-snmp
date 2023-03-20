@@ -1,16 +1,11 @@
-import sys
 import unittest
+from unittest.mock import Mock
 
 from pysnmp.entity import engine
 from pysnmp.entity.rfc3413.config import getTargetAddr
 
 from cloudshell.snmp.core.tools.snmp_trasnport import SnmpTransport
 from cloudshell.snmp.snmp_parameters import SNMPReadParameters
-
-if sys.version_info >= (3, 0):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
 
 
 class TestSnmpTransport(unittest.TestCase):

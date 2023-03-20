@@ -14,7 +14,7 @@ class JsonMibParser:
         for mib_source in self._mib_builder.getMibSources():
             try:
                 json_data, path = mib_source.read_json(mib_name)
-            except (IOError, AttributeError):
+            except (OSError, AttributeError):
                 continue
             if json_data:
                 try:

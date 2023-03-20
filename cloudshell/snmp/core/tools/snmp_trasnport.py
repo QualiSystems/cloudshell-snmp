@@ -8,7 +8,7 @@ from cloudshell.snmp.core.snmp_errors import InitializeSNMPException
 from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 
 
-class SnmpTransport(object):
+class SnmpTransport:
     def __init__(self, snmp_parameters, logger):
         self._snmp_parameters = snmp_parameters
         self._logger = logger
@@ -36,16 +36,16 @@ class SnmpTransport(object):
                 )[-1][4][:2]
             except socket.gaierror:
                 raise InitializeSNMPException(
-                    "Failed to validate {} hostname".format(self._snmp_parameters.ip),
+                    f"Failed to validate {self._snmp_parameters.ip} hostname",
                     self._logger,
                 )
         else:
             raise InitializeSNMPException(
-                "Failed to validate {} hostname".format(self._snmp_parameters.ip),
+                f"Failed to validate {self._snmp_parameters.ip} hostname",
                 self._logger,
             )
         # fmt: off
-        ip = ip_address(u"{}".format(agent_udp_endpoint[0]))
+        ip = ip_address(f"{agent_udp_endpoint[0]}")
         # fmt: on
         if isinstance(ip, IPv6Address):
             config.addSocketTransport(

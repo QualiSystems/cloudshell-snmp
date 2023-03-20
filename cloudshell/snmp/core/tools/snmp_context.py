@@ -1,7 +1,7 @@
 from pyasn1.type import univ
 
 
-class SnmpContext(object):
+class SnmpContext:
     def __init__(self, v3_context_engine_id=None, v3_context_name=""):
         self._v3_context_engine_id = v3_context_engine_id
         self._v3_context_name = v3_context_name

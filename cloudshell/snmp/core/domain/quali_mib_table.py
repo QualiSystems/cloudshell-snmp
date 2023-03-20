@@ -15,7 +15,7 @@ class QualiMibTable(dict):
 
         :param name: MIB table name.
         """
-        super(QualiMibTable, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._name = name
 
     def get_rows(self, *indexes):

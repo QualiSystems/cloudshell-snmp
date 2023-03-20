@@ -81,7 +81,7 @@ class QualiViewController:
                         glob_mib_mod["oidToLabelIdx"][v.name] = (n,)
                         mibMod["oidToLabelIdx"][v.name] = (n,)
                     else:
-                        raise SmiError("Unexpected object %s::%s" % (modName, n))
+                        raise SmiError(f"Unexpected object {modName}::{n}")
 
             oidToLabelIdx = self._mibSymbolsIdx[""]["oidToLabelIdx"]
             labelToOidIdx = self._mibSymbolsIdx[""]["labelToOidIdx"]
@@ -119,9 +119,7 @@ class QualiViewController:
                     if not data:
                         mib_name = self.mib_builder.json_mib_parser.guess_mib_name(oid)
                         if not mib_name:
-                            raise Exception(
-                                "Could not find MIB for OID: {}".format(oid)
-                            )
+                            raise Exception(f"Could not find MIB for OID: {oid}")
                         json_mib = self.mib_builder.json_mib_parser.json_mibs.get(
                             mib_name
                         )
@@ -155,7 +153,7 @@ class QualiViewController:
         try:
             return self._mibSymbolsIdx.nextKey(modName)
         except KeyError:
-            raise SmiError("No module next to %s at %s" % (modName, self))
+            raise SmiError(f"No module next to {modName} at {self}")
 
     def _getOidLabel(self, nodeName, oidToLabelIdx, labelToOidIdx):
         """getOidLabel(nodeName) -> (oid, label, suffix)."""
@@ -184,13 +182,15 @@ class QualiViewController:
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
         else:
-            raise SmiError("No module %s at %s" % (modName, self))
+            raise SmiError(f"No module {modName} at {self}")
         oid, label, suffix = self._getOidLabel(
             nodeName, mibMod["oidToLabelIdx"], mibMod["labelToOidIdx"]
         )
         if oid == label:
             raise NoSuchObjectError(
-                str="Can't resolve node name %s::%s at %s" % (modName, nodeName, self)
+                str="Can't resolve node name {}::{} at {}".format(
+                    modName, nodeName, self
+                )
             )
         self._logger.debug(
             "getNodeNameByOid: resolved %s:%s -> %s.%s"
@@ -203,16 +203,14 @@ class QualiViewController:
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
         else:
-            raise SmiError("No module %s at %s" % (modName, self))
+            raise SmiError(f"No module {modName} at {self}")
         if nodeName in mibMod["varToNameIdx"]:
             oid = mibMod["varToNameIdx"][nodeName]
         else:
             raise NoSuchObjectError(
-                str="No such symbol %s::%s at %s" % (modName, nodeName, self)
+                str=f"No such symbol {modName}::{nodeName} at {self}"
             )
-        self._logger.debug(
-            "getNodeNameByDesc: resolved %s:%s -> %s" % (modName, nodeName, oid)
-        )
+        self._logger.debug(f"getNodeNameByDesc: resolved {modName}:{nodeName} -> {oid}")
         return self.getNodeNameByOid(oid, modName)
 
     def getNodeName(self, nodeName, modName=""):
@@ -227,10 +225,10 @@ class QualiViewController:
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
         else:
-            raise SmiError("No module %s at %s" % (modName, self))
+            raise SmiError(f"No module {modName} at {self}")
         if not mibMod["oidToLabelIdx"]:
             raise NoSuchObjectError(
-                str="No variables at MIB module %s at %s" % (modName, self)
+                str=f"No variables at MIB module {modName} at {self}"
             )
         try:
             oid, label = mibMod["oidToLabelIdx"].items()[index]
@@ -256,14 +254,14 @@ class QualiViewController:
             )
         except KeyError:
             raise NoSuchObjectError(
-                str="No name next to %s::%s at %s" % (modName, nodeName, self)
+                str=f"No name next to {modName}::{nodeName} at {self}"
             )
 
     def getParentNodeName(self, nodeName, modName=""):
         oid, label, suffix = self.getNodeName(nodeName, modName)
         if len(oid) < 2:
             raise NoSuchObjectError(
-                str="No parent name for %s::%s at %s" % (modName, nodeName, self)
+                str=f"No parent name for {modName}::{nodeName} at {self}"
             )
         return oid[:-1], label[:-1], oid[-1:] + suffix
 
@@ -278,13 +276,11 @@ class QualiViewController:
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
         else:
-            raise SmiError("No module %s at %s" % (modName, self))
+            raise SmiError(f"No module {modName} at {self}")
         if typeName in mibMod["typeToModIdx"]:
             m = mibMod["typeToModIdx"][typeName]
         else:
-            raise NoSuchObjectError(
-                str="No such type %s::%s at %s" % (modName, typeName, self)
-            )
+            raise NoSuchObjectError(str=f"No such type {modName}::{typeName} at {self}")
         return m, typeName
 
     def getOrderedTypeName(self, index, modName=""):
@@ -292,11 +288,9 @@ class QualiViewController:
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
         else:
-            raise SmiError("No module %s at %s" % (modName, self))
+            raise SmiError(f"No module {modName} at {self}")
         if not mibMod["typeToModIdx"]:
-            raise NoSuchObjectError(
-                str="No types at MIB module %s at %s" % (modName, self)
-            )
+            raise NoSuchObjectError(str=f"No types at MIB module {modName} at {self}")
         t = mibMod["typeToModIdx"].keys()[index]
         return mibMod["typeToModIdx"][t], t
 
@@ -312,5 +306,5 @@ class QualiViewController:
             return self._mibSymbolsIdx[m]["typeToModIdx"].nextKey(t)
         except KeyError:
             raise NoSuchObjectError(
-                str="No type next to %s::%s at %s" % (modName, typeName, self)
+                str=f"No type next to {modName}::{typeName} at {self}"
             )

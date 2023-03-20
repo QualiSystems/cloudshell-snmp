@@ -5,7 +5,7 @@ from pysnmp.smi.error import SmiError
 from cloudshell.snmp.core.snmp_errors import TranslateSNMPException
 
 
-class SnmpResponse(object):
+class SnmpResponse:
     def __init__(self, oid, value, snmp_engine, logger):
         self._raw_oid = oid
         self._engine = snmp_engine
