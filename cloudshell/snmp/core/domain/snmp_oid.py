@@ -82,7 +82,6 @@ class SnmpMibObject(BaseSnmpOid):
         return object_identity
 
     def get_oid(self, snmp_engine):
-
         return self.get_object_type(snmp_engine)[0].getOid()
 
     def get_object_type(self, snmp_engine):
