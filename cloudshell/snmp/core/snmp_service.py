@@ -136,7 +136,7 @@ class SnmpService:
 
         return service.result
 
-    def get_property(self, snmp_oid) -> SnmpResponse | None:
+    def get_property(self, snmp_oid: SnmpMibObject | SnmpRawOid) -> SnmpResponse:
         response = SnmpResponse(
             str(snmp_oid.get_oid(self._snmp_engine)),
             None,
