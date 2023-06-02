@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pysnmp.error import PySnmpError
 from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.error import SmiError

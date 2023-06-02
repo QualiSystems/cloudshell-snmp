@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import os
 import time
 
 from pyasn1.type import univ
-from pysnmp.proto.errind import requestTimedOut
+from pysnmp.proto.errind import RequestTimedOut, requestTimedOut
 
 from cloudshell.snmp.core.domain.quali_mib_table import QualiMibTable
+from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpRawOid
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 from cloudshell.snmp.core.snmp_errors import GeneralSNMPException, ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
@@ -133,7 +136,7 @@ class SnmpService:
 
         return service.result
 
-    def get_property(self, snmp_oid):
+    def get_property(self, snmp_oid) -> SnmpResponse | None:
         response = SnmpResponse(
             str(snmp_oid.get_oid(self._snmp_engine)),
             None,
@@ -147,7 +150,7 @@ class SnmpService:
 
         return response
 
-    def get(self, snmp_oid):
+    def get(self, snmp_oid: SnmpMibObject | SnmpRawOid) -> SnmpResponse | None:
         """Get snmp operation.
 
         Load appropriate oid value from the device.
@@ -156,7 +159,6 @@ class SnmpService:
             SnmpMibOid('SNMPv2-MIB', 'sysContact', 0)
             SnmpMibOid('SNMPv2-MIB', 'sysContact')
             SnmpRawOid('1.3.6.1.2.1.1.4.0')
-        :return: SnmpResponse
         """
         oid = snmp_oid.get_oid(self._snmp_engine)
         if hasattr(oid, "index") and not oid.index:
@@ -340,11 +342,11 @@ class SnmpService:
 
     def get_multiple_columns(
         self,
-        snmp_oid_obj_list,
-        retry_count=WALK_RETRY_COUNT,
-        get_bulk_flag=None,
-        get_bulk_repetitions=DEFAULT_GET_BULK_REPETITIONS,
-    ):
+        snmp_oid_obj_list: list[SnmpMibObject | SnmpRawOid],
+        retry_count: int = WALK_RETRY_COUNT,
+        get_bulk_flag: bool | None = None,
+        get_bulk_repetitions: int = DEFAULT_GET_BULK_REPETITIONS,
+    ) -> QualiMibTable:
         """Get multiple columns from the table. Based on a walk command.
 
         Load list of appropriate oid values from the device.
@@ -359,8 +361,6 @@ class SnmpService:
             SnmpMibOid('IF-MIB', 'ifPhysicalAddress'),
             etc.
             ]
-
-        :return: QualiMibTable
         """
         result_list = []
         table_name = (
@@ -369,15 +369,18 @@ class SnmpService:
             .getMibSymbol()[1]
         )
         for snmp_oid_obj in snmp_oid_obj_list:
-            result_list.extend(
-                self._walk(
-                    snmp_oid_obj,
-                    get_subtree=True,
-                    retry_count=retry_count,
-                    get_bulk_flag=get_bulk_flag,
-                    get_bulk_repetitions=get_bulk_repetitions,
+            try:
+                result_list.extend(
+                    self._walk(
+                        snmp_oid_obj,
+                        get_subtree=True,
+                        retry_count=retry_count,
+                        get_bulk_flag=get_bulk_flag,
+                        get_bulk_repetitions=get_bulk_repetitions,
+                    )
                 )
-            )
+            except RequestTimedOut as e:
+                self._logger.error(f"Error retrieving snmp response: {e}")
 
         result_dict = QualiMibTable.create_from_list(table_name, result_list)
 
