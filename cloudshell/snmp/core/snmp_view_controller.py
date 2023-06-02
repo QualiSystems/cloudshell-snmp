@@ -192,10 +192,6 @@ class QualiViewController:
                     modName, nodeName, self
                 )
             )
-        self._logger.debug(
-            "getNodeNameByOid: resolved %s:%s -> %s.%s"
-            % (modName, nodeName, label, suffix)
-        )
         return oid, label, suffix
 
     def getNodeNameByDesc(self, nodeName, modName=""):
@@ -210,7 +206,6 @@ class QualiViewController:
             raise NoSuchObjectError(
                 str=f"No such symbol {modName}::{nodeName} at {self}"
             )
-        self._logger.debug(f"getNodeNameByDesc: resolved {modName}:{nodeName} -> {oid}")
         return self.getNodeNameByOid(oid, modName)
 
     def getNodeName(self, nodeName, modName=""):
