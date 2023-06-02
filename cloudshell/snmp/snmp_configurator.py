@@ -102,7 +102,7 @@ class EnableDisableSnmpManager:
         self._snmp_manager.__exit__(exc_type, exc_val, exc_tb)
 
 
-class EnableDisableSnmpConfigurator(ABC):
+class EnableDisableSnmpConfigurator:
     def __init__(
         self,
         enable_disable_snmp_flow: EnableDisableSnmpFlowInterface,
