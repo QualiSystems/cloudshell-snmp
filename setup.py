@@ -1,4 +1,7 @@
 import os
+import warnings
+
+warnings.filterwarnings("ignore")
 
 from setuptools import find_packages, setup
 
