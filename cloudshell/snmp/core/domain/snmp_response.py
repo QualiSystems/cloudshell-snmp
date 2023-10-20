@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pyasn1.error import PyAsn1Error
 from pysnmp.error import PySnmpError
 from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.error import SmiError
@@ -84,7 +85,7 @@ class SnmpResponse:
             if value.lower().startswith("0x"):
                 value = str(self._raw_value)
             return value
-        except (PySnmpError, SmiError):
+        except (PySnmpError, SmiError, PyAsn1Error):
             raise TranslateSNMPException("Error parsing snmp response")
 
     def _get_oid(self):
