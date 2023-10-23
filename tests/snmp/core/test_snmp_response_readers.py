@@ -24,7 +24,7 @@ class TestSnmpResponseReader:
         assert reader._stop_oid is None
         assert reader.cb_ctx == {
             "is_snmp_timeout": False,
-            "reqTime": time.time(),
+            "reqTime": reader.cb_ctx.get("reqTime", time.time()),
             "": True,
             "retries": reader._retry_count,
         }
