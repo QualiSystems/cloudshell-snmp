@@ -59,12 +59,13 @@ from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpSetMibName
 from cloudshell.snmp.snmp_parameters import SNMPWriteParameters
 
 snmp_params = SNMPWriteParameters(ip, community, "v2")
+logger = get_qs_logger()
 logger.info("started")
 
 snmp_handler = Snmp()
 
 with snmp_handler.get_snmp_service(snmp_parameters=snmp_params, logger=logger) as snmp_service:
-    snmp_service.update_mib_sources("D:\\cisco\\mibs")
+    snmp_service.add_mib_folder_path("D:\\cisco\\mibs")
     set_id = 1 # Represents a row id, should be incremented.
     response = snmp_service.set([SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopyProtocol", set_id, 1),
                                  SnmpSetMibName("CISCO-CONFIG-COPY-MIB", "ccCopySourceFileType", set_id, 3),
@@ -83,6 +84,7 @@ from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpSetMibName
 from cloudshell.snmp.snmp_parameters import SNMPWriteParameters
 
 snmp_params = SNMPWriteParameters(ip, community, "v2")
+logger = get_qs_logger()
 logger.info("started")
 
 snmp_handler = Snmp()
@@ -105,6 +107,7 @@ from cloudshell.snmp.core.domain.snmp_oid import SnmpMibObject, SnmpSetMibName
 from cloudshell.snmp.snmp_parameters import SNMPWriteParameters
 
 snmp_params = SNMPWriteParameters(ip, community, "v2")
+logger = get_qs_logger()
 logger.info("started")
 
 snmp_handler = Snmp()
