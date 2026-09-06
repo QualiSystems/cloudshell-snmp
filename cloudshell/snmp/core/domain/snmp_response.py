@@ -13,11 +13,11 @@ class SnmpResponse:
     def __init__(self, oid, value, snmp_engine, logger):
         self._raw_oid = oid
         self._engine = snmp_engine
-        # pysnmp 7: get_mib_view_controller is a staticmethod over the raw
-        # engine cache dict (QualiSnmpEngine plants QualiViewController there)
-        self._snmp_mib_translator = CommandGeneratorVarBinds.get_mib_view_controller(
-            snmp_engine.cache
-        )
+        # prefer the engine's QualiViewController (pysnmp-4-identical semantics);
+        # fall back to pysnmp's cache helper only for foreign engines
+        self._snmp_mib_translator = getattr(
+            snmp_engine, "mib_view", None
+        ) or CommandGeneratorVarBinds.get_mib_view_controller(snmp_engine.cache)
         self._logger = logger
         self._mib_id = None
         self._mib_name = None

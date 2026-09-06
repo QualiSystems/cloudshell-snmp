@@ -17,6 +17,11 @@ class QualiSnmpEngine(SnmpEngine):
         )
         self._logger = logger
         self._mib_view = None
+        # plant eagerly: consumers resolve via engine.cache["mibViewController"]
+        # (pysnmp's default-create there binds a FRESH empty MibBuilder, silently
+        # bypassing the Quali MIB machinery - and whether anything populates the
+        # cache first varies between pysnmp 7.1.x point releases)
+        _ = self.mib_view
 
     @property
     def mib_builder(self):
