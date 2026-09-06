@@ -20,7 +20,7 @@ class QualiSnmpEngine(SnmpEngine):
 
     @property
     def mib_builder(self):
-        return self.getMibBuilder()
+        return self.get_mib_builder()
 
     @property
     def build_helper(self):
@@ -30,5 +30,9 @@ class QualiSnmpEngine(SnmpEngine):
     def mib_view(self):
         if not self._mib_view:
             self._mib_view = QualiViewController(self.mib_builder, self._logger)
-            self.setUserContext(**{self.MIB_VIEW_CONTROLLER: self._mib_view})
+            # pysnmp 7 CommandGeneratorVarBinds.get_mib_view_controller reads the
+            # raw engine.cache key, while set_user_context prefixes keys with "__" -
+            # plant the controller directly or MIB resolution silently falls back
+            # to a fresh default MibViewController.
+            self.cache[self.MIB_VIEW_CONTROLLER] = self._mib_view
         return self._mib_view

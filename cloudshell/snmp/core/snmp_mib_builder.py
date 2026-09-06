@@ -46,7 +46,7 @@ class QualiMibBuilder(builder.MibBuilder):
                 return symbol
         json_mib = self.json_mib_parser.json_mibs.get(mib_name)
         if not mib and not json_mib:
-            self.loadModule(mib_name, **user_ctx)
+            self.load_module(mib_name, **user_ctx)
             mib = self.mibSymbols.get(mib_name, {})
             json_mib = self.json_mib_parser.json_mibs.get(mib_name)
         if json_mib:
@@ -55,16 +55,19 @@ class QualiMibBuilder(builder.MibBuilder):
             ):
                 json_mib.load_mib_type(sym_name)
 
-    def importSymbols(self, modName, *symNames, **userCtx):
+    # pysnmp 7 internals call the snake_case methods, so the overrides must be
+    # snake_case too - overriding importSymbols/loadModule intercepts nothing.
+    # load_modules loops over load_module, so this single override catches both.
+    def import_symbols(self, modName, *symNames, **userCtx):
         if modName in self.json_mib_parser.json_mibs:
             self.load_mib_symbols(modName, *symNames)
 
-        return super().importSymbols(modName, *symNames, **userCtx)
+        return super().import_symbols(modName, *symNames, **userCtx)
 
-    def loadModule(self, modName, **userCtx):
+    def load_module(self, modName, **userCtx):
         if modName in self.json_mib_parser.json_mibs:
             return
         try:
-            return super().loadModule(modName, **userCtx)
+            return super().load_module(modName, **userCtx)
         except MibNotFoundError:
             self.json_mib_parser.load_json_mib(modName)
