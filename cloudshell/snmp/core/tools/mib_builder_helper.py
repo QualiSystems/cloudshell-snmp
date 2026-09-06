@@ -8,7 +8,7 @@ from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 class QualiDirMibSource(DirMibSource):
     def read_json(self, mib_name):
-        return self._getData(f"{mib_name}.json", "r")
+        return self._get_data(f"{mib_name}.json", "r")
 
     def preload(self, mib_builder):
         for file in os.listdir(self._srcName):
@@ -30,7 +30,7 @@ class MibBuilderHelper:
 
     def get_obj_type(self, object_identity, value):
         object_type = ObjectType(object_identity, value)
-        if not object_type.isFullyResolved():
+        if not object_type.is_fully_resolved():
             if isinstance(value, ObjectIdentifier):
                 self.get_object(str(value))
         return object_type

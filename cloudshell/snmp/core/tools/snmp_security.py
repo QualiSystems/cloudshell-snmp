@@ -19,7 +19,7 @@ class SnmpSecurity:
             priv_protocol = PRIV_PROTOCOL_MAP.get(
                 self._py_snmp_params.snmp_parameters.snmp_private_key_protocol
             )
-            config.addV3User(
+            config.add_v3_user(
                 snmpEngine=snmp_engine,
                 userName=self._py_snmp_params.user,
                 authProtocol=auth_protocol,
@@ -28,7 +28,7 @@ class SnmpSecurity:
                 privKey=self._py_snmp_params.snmp_parameters.snmp_private_key,
             )
         else:
-            config.addV1System(
+            config.add_v1_system(
                 snmp_engine,
                 self._py_snmp_params.user,
                 self._py_snmp_params.snmp_parameters.snmp_community,

@@ -5,7 +5,6 @@ from pysnmp.proto import rfc1902, rfc1905
 from pysnmp.proto.errind import RequestTimedOut
 
 from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
-from cloudshell.snmp.core.snmp_errors import ReadSNMPException
 
 
 class SnmpResponseReader:
@@ -57,7 +56,10 @@ class SnmpResponseReader:
                 error_indication or error_status.prettyPrint()
             )
             self._logger.error(message)
-            raise ReadSNMPException(message)
+            # pysnmp 7 asyncio transports swallow exceptions raised from
+            # callbacks - record the error, SnmpService._check_error raises it
+            self.cb_ctx["error"] = message
+            return False
         stop_flag = self._parse_var_binds(var_bind_table=var_bind_table)
         return not stop_flag
 
@@ -95,8 +97,9 @@ class SnmpResponseReader:
                 % (error_indication or error_status.prettyPrint())
             )
             if self.cb_ctx["retries"]:
+                # pysnmp 7 delivers var binds flat: [(oid, value), ...]
                 try:
-                    next_oid = var_bind_table[-1][0][0]
+                    next_oid = var_bind_table[-1][0]
                 except IndexError:
                     next_oid = self.cb_ctx["lastOID"]
                 else:
@@ -142,11 +145,26 @@ class SnmpResponseReader:
         if self._retry_count != self.cb_ctx["retries"]:
             self.cb_ctx["retries"] += 1
 
-        if var_bind_table and var_bind_table[-1] and var_bind_table[-1][0]:
-            self.cb_ctx["lastOID"] = var_bind_table[-1][0][0]
+        if var_bind_table:
+            self.cb_ctx["lastOID"] = var_bind_table[-1][0]
 
         stop_flag = self._parse_var_binds(var_bind_table=var_bind_table)
-        return not stop_flag
+        if stop_flag or not var_bind_table:
+            return False
+        # pysnmp 7 command generators fire the callback once and stop - the
+        # walk continuation must be re-issued from inside the callback, or
+        # every walk silently truncates to a single PDU worth of rows
+        next_oid = var_bind_table[-1][0]
+        if get_bulk_flag:
+            get_bulk_repetitions = self._get_bulk_repetitions
+            if self.cb_ctx.get("get_bulk_retry_half_repetitions_flag"):
+                get_bulk_repetitions = self._get_bulk_repetitions // 2
+            self._send_bulk_var_binds(
+                oid=next_oid, get_bulk_repetitions=get_bulk_repetitions
+            )
+        else:
+            self._send_walk_var_binds(oid=next_oid)
+        return True
 
     def _parse_var_binds(self, var_bind_table):
         stop_flag = False
@@ -165,6 +183,8 @@ class SnmpResponseReader:
                 stop_flag = self._parse_response(oid, value)
                 if stop_flag:
                     break
+            if stop_flag:
+                break
         return stop_flag
 
     def _parse_response(self, oid, value):
@@ -199,7 +219,7 @@ class SnmpResponseReader:
         if not cb_fun:
             cb_fun = self.cb_walk_fun
 
-        cmd_gen.sendVarBinds(
+        cmd_gen.send_varbinds(
             self._snmp_engine,
             "tgt",
             self._context_id,
@@ -217,7 +237,7 @@ class SnmpResponseReader:
     def _send_bulk_var_binds(self, oid, get_bulk_repetitions=None):
         cmd_gen = cmdgen.BulkCommandGenerator()
 
-        cmd_gen.sendVarBinds(
+        cmd_gen.send_varbinds(
             self._snmp_engine,
             "tgt",
             self._context_id,
@@ -234,7 +254,7 @@ class SnmpResponseReader:
         if stop_oid and not self._stop_oid:
             self._stop_oid = stop_oid
 
-        cmd_gen.sendVarBinds(
+        cmd_gen.send_varbinds(
             self._snmp_engine,
             "tgt",
             self._context_id,
@@ -247,7 +267,7 @@ class SnmpResponseReader:
     def send_set_var_binds(self, oids):
         cmd_gen = cmdgen.SetCommandGenerator()
 
-        cmd_gen.sendVarBinds(
+        cmd_gen.send_varbinds(
             self._snmp_engine,
             "tgt",
             self._context_id,

@@ -11,7 +11,7 @@ class JsonMibParser:
         self.json_mibs = {}
 
     def load_json_mib(self, mib_name):
-        for mib_source in self._mib_builder.getMibSources():
+        for mib_source in self._mib_builder.get_mib_sources():
             try:
                 json_data, path = mib_source.read_json(mib_name)
             except (OSError, AttributeError):

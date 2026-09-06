@@ -33,8 +33,8 @@ class SnmpContextManager:
         return snmp_service
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._snmp_engine.transportDispatcher:
-            self._snmp_engine.transportDispatcher.closeDispatcher()
+        if self._snmp_engine.transport_dispatcher:
+            self._snmp_engine.transport_dispatcher.close_dispatcher()
         mib_builder = self._snmp_engine.mib_builder
         for json_mib in mib_builder.json_mib_parser.json_mibs.values():
             json_mib.json_mib_destroy()

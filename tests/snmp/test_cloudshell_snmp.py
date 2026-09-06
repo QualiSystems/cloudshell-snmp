@@ -103,7 +103,7 @@ class TestSNMP(TestCase):
         mock_engine.assert_called_once_with(
             msg_pdu_dsp=mock_dsp.return_value, logger=logger
         )
-        mock_config.addTargetParams.assert_called_once_with(
+        mock_config.add_target_parameters.assert_called_once_with(
             mock_engine.return_value,
             "pms",
             pysnmp_params.user,

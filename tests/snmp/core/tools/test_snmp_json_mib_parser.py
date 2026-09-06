@@ -44,7 +44,7 @@ class TestJsonMibParser(TestCase):
         mib_builder = Mock()
         mib_source = Mock()
         mib_source.read_json.return_value = ('{"imports": {}}', "path/to/test_mib.json")
-        mib_builder.getMibSources.return_value = [mib_source]
+        mib_builder.get_mib_sources.return_value = [mib_source]
         parser = JsonMibParser(mib_builder)
 
         # Act
@@ -80,7 +80,7 @@ class TestJsonMibParser(TestCase):
     def test_load_json_mib_nonexistent_file(self):
         # Arrange
         mib_builder = Mock()
-        mib_builder.getMibSources.return_value = []
+        mib_builder.get_mib_sources.return_value = []
         parser = JsonMibParser(mib_builder)
 
         # Act & Assert
@@ -95,7 +95,7 @@ class TestJsonMibParser(TestCase):
             '{"name": "test_mib",}',
             "path/to/test_mib.json",
         )
-        mib_builder.getMibSources.return_value = [mib_source]
+        mib_builder.get_mib_sources.return_value = [mib_source]
         parser = JsonMibParser(mib_builder)
 
         # Act & Assert
@@ -107,7 +107,7 @@ class TestJsonMibParser(TestCase):
         mib_builder = Mock()
         mib_source = Mock()
         mib_source.read_json.side_effect = AttributeError
-        mib_builder.getMibSources.return_value = [mib_source]
+        mib_builder.get_mib_sources.return_value = [mib_source]
         parser = JsonMibParser(mib_builder)
 
         # Act & Assert

@@ -57,8 +57,8 @@ class TestJsonMib(TestCase):
             "mibs",
         )
         path_to_add = QualiDirMibSource(path)
-        mib_sources = (path_to_add,) + self.mib_builder.getMibSources()
-        self.mib_builder.setMibSources(*mib_sources)
+        mib_sources = (path_to_add,) + self.mib_builder.get_mib_sources()
+        self.mib_builder.set_mib_sources(*mib_sources)
         path_to_add.preload(self.mib_builder)
 
     def test_successful_parsing_and_mapping_of_mib_data(self):
@@ -143,7 +143,7 @@ class TestJsonMib(TestCase):
         )
 
         # Act
-        self.mib_builder.loadModule("IF-MIB")
+        self.mib_builder.load_module("IF-MIB")
         json_mib.load_mib_type("interfaceindex")
         result = json_mib.mib_types.get("interfaceindex")
 

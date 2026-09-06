@@ -44,7 +44,7 @@ class TestSnmpResponseReader:
             reader.send_get_var_binds(oid, stop_oid)
 
             cmd_gen.assert_called_once_with()
-            cmd_gen.return_value.sendVarBinds.assert_called_once_with(
+            cmd_gen.return_value.send_varbinds.assert_called_once_with(
                 snmp_engine,
                 "tgt",
                 reader._context_id,
@@ -67,7 +67,7 @@ class TestSnmpResponseReader:
             reader.send_walk_var_binds(oid, stop_oid)
 
             cmd_gen.assert_called_once_with()
-            cmd_gen.return_value.sendVarBinds.assert_called_once_with(
+            cmd_gen.return_value.send_varbinds.assert_called_once_with(
                 snmp_engine,
                 "tgt",
                 reader._context_id,

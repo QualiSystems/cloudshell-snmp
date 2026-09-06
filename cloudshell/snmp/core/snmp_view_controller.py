@@ -21,7 +21,7 @@ class QualiViewController:
         if self.last_build_id == self.mib_builder.lastBuildId:
             return
 
-        (MibScalarInstance,) = self.mib_builder.importSymbols(
+        (MibScalarInstance,) = self.mib_builder.import_symbols(
             "SNMPv2-SMI", "MibScalarInstance"
         )
 
@@ -31,8 +31,8 @@ class QualiViewController:
             self._mibSymbolsIdx.clear()
 
             def _sort_fun(x, b=self.mib_builder):
-                if b.moduleID in b.mibSymbols[x]:
-                    m = b.mibSymbols[x][b.moduleID]
+                if b.module_id in b.mibSymbols[x]:
+                    m = b.mibSymbols[x][b.module_id]
                     r = m.getRevisions()
                     if r:
                         return r[0]
@@ -56,7 +56,7 @@ class QualiViewController:
                     continue
 
                 for n, v in copy(self.mib_builder.mibSymbols[modName]).items():
-                    if n == self.mib_builder.moduleID:
+                    if n == self.mib_builder.module_id:
                         continue
                     if isinstance(v, classTypes):
                         if n in mibMod["typeToModIdx"]:
@@ -135,27 +135,27 @@ class QualiViewController:
 
             self.last_build_id = self.mib_builder.lastBuildId
 
-    def getOrderedModuleName(self, index):
+    def get_ordered_module_name(self, index):
         self.index_mib()
         modNames = self._mibSymbolsIdx.keys()
         if modNames:
             return modNames[index]
         raise SmiError("No modules loaded at %s" % self)
 
-    def getFirstModuleName(self):
-        return self.getOrderedModuleName(0)
+    def get_first_module_name(self):
+        return self.get_ordered_module_name(0)
 
-    def getLastModuleName(self):
-        return self.getOrderedModuleName(-1)
+    def get_last_module_name(self):
+        return self.get_ordered_module_name(-1)
 
-    def getNextModuleName(self, modName):
+    def get_next_module_name(self, modName):
         self.index_mib()
         try:
             return self._mibSymbolsIdx.nextKey(modName)
         except KeyError:
             raise SmiError(f"No module next to {modName} at {self}")
 
-    def _getOidLabel(self, nodeName, oidToLabelIdx, labelToOidIdx):
+    def _get_oid_label(self, nodeName, oidToLabelIdx, labelToOidIdx):
         """getOidLabel(nodeName) -> (oid, label, suffix)."""
         if not nodeName:
             return nodeName, nodeName, ()
@@ -165,7 +165,7 @@ class QualiViewController:
             return nodeName, oidToLabelIdx[nodeName], ()
         if len(nodeName) < 2:
             return nodeName, nodeName, ()
-        oid, label, suffix = self._getOidLabel(
+        oid, label, suffix = self._get_oid_label(
             nodeName[:-1], oidToLabelIdx, labelToOidIdx
         )
         suffix = suffix + nodeName[-1:]
@@ -177,13 +177,13 @@ class QualiViewController:
             return resOid, oidToLabelIdx[resOid], ()
         return oid, label, suffix
 
-    def getNodeNameByOid(self, nodeName, modName=""):
+    def get_node_name_by_oid(self, nodeName, modName=""):
         self.index_mib()
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
         else:
             raise SmiError(f"No module {modName} at {self}")
-        oid, label, suffix = self._getOidLabel(
+        oid, label, suffix = self._get_oid_label(
             nodeName, mibMod["oidToLabelIdx"], mibMod["labelToOidIdx"]
         )
         if oid == label:
@@ -194,7 +194,7 @@ class QualiViewController:
             )
         return oid, label, suffix
 
-    def getNodeNameByDesc(self, nodeName, modName=""):
+    def get_node_name_by_desc(self, nodeName, modName=""):
         self.index_mib()
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
@@ -206,16 +206,16 @@ class QualiViewController:
             raise NoSuchObjectError(
                 str=f"No such symbol {modName}::{nodeName} at {self}"
             )
-        return self.getNodeNameByOid(oid, modName)
+        return self.get_node_name_by_oid(oid, modName)
 
-    def getNodeName(self, nodeName, modName=""):
+    def get_node_name(self, nodeName, modName=""):
         try:
-            return self.getNodeNameByOid(nodeName, modName)
+            return self.get_node_name_by_oid(nodeName, modName)
         except NoSuchObjectError:
-            oid, label, suffix = self.getNodeNameByDesc(nodeName[0], modName)
-            return self.getNodeNameByOid(oid + suffix + nodeName[1:], modName)
+            oid, label, suffix = self.get_node_name_by_desc(nodeName[0], modName)
+            return self.get_node_name_by_oid(oid + suffix + nodeName[1:], modName)
 
-    def getOrderedNodeName(self, index, modName=""):
+    def get_ordered_node_name(self, index, modName=""):
         self.index_mib()
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
@@ -234,16 +234,16 @@ class QualiViewController:
             )
         return oid, label, ()
 
-    def getFirstNodeName(self, modName=""):
-        return self.getOrderedNodeName(0, modName)
+    def get_first_node_name(self, modName=""):
+        return self.get_ordered_node_name(0, modName)
 
-    def getLastNodeName(self, modName=""):
-        return self.getOrderedNodeName(-1, modName)
+    def get_last_node_name(self, modName=""):
+        return self.get_ordered_node_name(-1, modName)
 
-    def getNextNodeName(self, nodeName, modName=""):
-        oid, label, suffix = self.getNodeName(nodeName, modName)
+    def get_next_node_name(self, nodeName, modName=""):
+        oid, label, suffix = self.get_node_name(nodeName, modName)
         try:
-            return self.getNodeName(
+            return self.get_node_name(
                 self._mibSymbolsIdx[modName]["oidToLabelIdx"].nextKey(oid) + suffix,
                 modName,
             )
@@ -252,21 +252,21 @@ class QualiViewController:
                 str=f"No name next to {modName}::{nodeName} at {self}"
             )
 
-    def getParentNodeName(self, nodeName, modName=""):
-        oid, label, suffix = self.getNodeName(nodeName, modName)
+    def get_parent_node_name(self, nodeName, modName=""):
+        oid, label, suffix = self.get_node_name(nodeName, modName)
         if len(oid) < 2:
             raise NoSuchObjectError(
                 str=f"No parent name for {modName}::{nodeName} at {self}"
             )
         return oid[:-1], label[:-1], oid[-1:] + suffix
 
-    def getNodeLocation(self, nodeName, modName=""):
-        oid, label, suffix = self.getNodeName(nodeName, modName)
+    def get_node_location(self, nodeName, modName=""):
+        oid, label, suffix = self.get_node_name(nodeName, modName)
         return self._mibSymbolsIdx[""]["oidToModIdx"][oid], label[-1], suffix
 
     # MIB type management
 
-    def getTypeName(self, typeName, modName=""):
+    def get_type_name(self, typeName, modName=""):
         self.index_mib()
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
@@ -278,7 +278,7 @@ class QualiViewController:
             raise NoSuchObjectError(str=f"No such type {modName}::{typeName} at {self}")
         return m, typeName
 
-    def getOrderedTypeName(self, index, modName=""):
+    def get_ordered_type_name(self, index, modName=""):
         self.index_mib()
         if modName in self._mibSymbolsIdx:
             mibMod = self._mibSymbolsIdx[modName]
@@ -289,17 +289,37 @@ class QualiViewController:
         t = mibMod["typeToModIdx"].keys()[index]
         return mibMod["typeToModIdx"][t], t
 
-    def getFirstTypeName(self, modName=""):
-        return self.getOrderedTypeName(0, modName)
+    def get_first_type_name(self, modName=""):
+        return self.get_ordered_type_name(0, modName)
 
-    def getLastTypeName(self, modName=""):
-        return self.getOrderedTypeName(-1, modName)
+    def get_last_type_name(self, modName=""):
+        return self.get_ordered_type_name(-1, modName)
 
-    def getNextType(self, typeName, modName=""):
-        m, t = self.getTypeName(typeName, modName)
+    def get_next_type(self, typeName, modName=""):
+        m, t = self.get_type_name(typeName, modName)
         try:
             return self._mibSymbolsIdx[m]["typeToModIdx"].nextKey(t)
         except KeyError:
             raise NoSuchObjectError(
                 str=f"No type next to {modName}::{typeName} at {self}"
             )
+
+    # camelCase shims for callers written against the pysnmp 4 view API
+    getNodeName = get_node_name
+    getNodeNameByOid = get_node_name_by_oid
+    getNodeNameByDesc = get_node_name_by_desc
+    getFirstNodeName = get_first_node_name
+    getLastNodeName = get_last_node_name
+    getNextNodeName = get_next_node_name
+    getParentNodeName = get_parent_node_name
+    getOrderedNodeName = get_ordered_node_name
+    getNodeLocation = get_node_location
+    getFirstModuleName = get_first_module_name
+    getLastModuleName = get_last_module_name
+    getNextModuleName = get_next_module_name
+    getOrderedModuleName = get_ordered_module_name
+    getTypeName = get_type_name
+    getOrderedTypeName = get_ordered_type_name
+    getFirstTypeName = get_first_type_name
+    getLastTypeName = get_last_type_name
+    getNextType = get_next_type

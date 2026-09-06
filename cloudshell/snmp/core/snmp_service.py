@@ -12,6 +12,9 @@ from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 from cloudshell.snmp.core.snmp_errors import GeneralSNMPException, ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 from cloudshell.snmp.core.tools.mib_builder_helper import QualiDirMibSource
+from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
+
+DEFAULT_REQUEST_DEADLINE = (SNMP_TIMEOUT / 100.0) * (SNMP_RETRIES_COUNT + 1)
 
 
 class SnmpService:
@@ -48,8 +51,8 @@ class SnmpService:
         """
         mib_builder = self._snmp_engine.mib_builder
         path_to_add = QualiDirMibSource(path)
-        mib_sources = (path_to_add,) + mib_builder.getMibSources()
-        mib_builder.setMibSources(*mib_sources)
+        mib_sources = (path_to_add,) + mib_builder.get_mib_sources()
+        mib_builder.set_mib_sources(*mib_sources)
         path_to_add.preload(mib_builder)
 
     def load_mib_tables(self, mib_list):
@@ -58,12 +61,12 @@ class SnmpService:
         :param mib_list: List of MIB names,
             for example: ['CISCO-PRODUCTS-MIB', 'CISCO-ENTITY-VENDORTYPE-OID-MIB']
         """
-        mib_builder = self._snmp_engine.getMibBuilder()
+        mib_builder = self._snmp_engine.get_mib_builder()
         if isinstance(mib_list, str):
             mib_list = [mib_list]
 
         for mib in mib_list:
-            mib_builder.loadModules(mib)
+            mib_builder.load_modules(mib)
 
     def translate_oid(self, snmp_oid):
         """Translates Raw OID into a human-readable identifiers.
@@ -326,7 +329,7 @@ class SnmpService:
     ):
         table_name = snmp_oid_obj.get_object_type(snmp_engine=self._snmp_engine)[
             0
-        ].getMibSymbol()[1]
+        ].get_mib_symbol()[1]
 
         result_list = self._walk(
             snmp_oid_obj,
@@ -366,7 +369,7 @@ class SnmpService:
         table_name = (
             snmp_oid_obj_list[0]
             .get_object_type(snmp_engine=self._snmp_engine)[0]
-            .getMibSymbol()[1]
+            .get_mib_symbol()[1]
         )
         for snmp_oid_obj in snmp_oid_obj_list:
             try:
@@ -401,8 +404,17 @@ class SnmpService:
         )
 
     def _start_dispatcher(self):
+        # per-request safety net: the pysnmp-configured deadline
+        # (timeout x (retries + 1), stashed by SnmpTransport) plus slack.
+        # QualiAsyncioDispatcher re-arms it on every job start/finish, so
+        # multi-request walks are not cut off. Normally the loop stops as
+        # soon as the jobs complete - well before this window.
+        max_wait = (
+            getattr(self._snmp_engine, "quali_request_deadline", None)
+            or DEFAULT_REQUEST_DEADLINE
+        ) + 10
         try:
-            self._snmp_engine.transportDispatcher.runDispatcher()
+            self._snmp_engine.transport_dispatcher.run_until_jobs_done(max_wait)
         except Exception:
             self._logger.debug("Error retrieving snmp response ", exc_info=1)
             raise
@@ -412,3 +424,9 @@ class SnmpService:
             exception = requestTimedOut
             self._logger.error(str(exception))
             raise exception
+        # pysnmp 7 asyncio transports swallow exceptions raised inside
+        # callbacks, so the reader records errors in cb_ctx instead of raising
+        error = cb_ctx.get("error")
+        if error:
+            self._logger.error(error)
+            raise ReadSNMPException(error)

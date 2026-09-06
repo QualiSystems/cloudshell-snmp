@@ -1,4 +1,4 @@
-pycryptodomex<3.10
-pyasn1==0.4.8
-pysnmp>=4.4,<5
+pysnmp>=7.1,<8
+pyasn1>=0.6.3
+cryptography>=43
 typing_extensions>=4.0
