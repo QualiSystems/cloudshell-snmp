@@ -12,12 +12,7 @@ from cloudshell.snmp.core.domain.snmp_response import SnmpResponse
 from cloudshell.snmp.core.snmp_errors import GeneralSNMPException, ReadSNMPException
 from cloudshell.snmp.core.snmp_response_reader import SnmpResponseReader
 from cloudshell.snmp.core.tools.mib_builder_helper import QualiDirMibSource
-
-
-from cloudshell.snmp.core.tools.snmp_constants import (
-    SNMP_RETRIES_COUNT,
-    SNMP_TIMEOUT,
-)
+from cloudshell.snmp.core.tools.snmp_constants import SNMP_RETRIES_COUNT, SNMP_TIMEOUT
 
 DEFAULT_REQUEST_DEADLINE = (SNMP_TIMEOUT / 100.0) * (SNMP_RETRIES_COUNT + 1)
 

@@ -102,8 +102,10 @@ class SnmpResponse:
 
     @staticmethod
     def _violates_octet_string_constraint(resolved):
-        """True for an OctetString-based TextualConvention whose payload
-        violates the type's size constraint (DISPLAY-HINT would misrender it).
+        """Detect a constraint-violating OctetString TextualConvention.
+
+        True when the payload violates the type's size constraint,
+        in which case the DISPLAY-HINT would misrender it.
         """
         if not isinstance(resolved, OctetString):
             return False
