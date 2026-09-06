@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pyasn1.error import PyAsn1Error
+from pyasn1.type.univ import OctetString
 from pysnmp.error import PySnmpError
 from pysnmp.hlapi.varbinds import CommandGeneratorVarBinds
 from pysnmp.smi.error import SmiError
@@ -80,15 +81,45 @@ class SnmpResponse:
         try:
             if self._raw_value is None or not self.object_type:
                 return
-            if hasattr(self.object_type[1], "prettyPrint"):
-                value = self.object_type[1].prettyPrint()
+            resolved = self.object_type[1]
+            if self._violates_octet_string_constraint(resolved):
+                # pysnmp 7 resolve_with_mib force-assigns the wire payload into
+                # the MIB type bypassing size constraints, so a malformed
+                # octet-string (e.g. a 16-byte DateAndTime) would render
+                # through the DISPLAY-HINT as garbage. pysnmp 4 left such
+                # values as plain OctetString - reproduce that: raw ASCII if
+                # printable, otherwise the 0x... path below.
+                value = OctetString(resolved.asOctets()).prettyPrint()
+            elif hasattr(resolved, "prettyPrint"):
+                value = resolved.prettyPrint()
             else:
-                value = str(self.object_type[1])
+                value = str(resolved)
             if value.lower().startswith("0x"):
                 value = str(self._raw_value)
             return value
         except (PySnmpError, SmiError, PyAsn1Error):
             raise TranslateSNMPException("Error parsing snmp response")
+
+    @staticmethod
+    def _violates_octet_string_constraint(resolved):
+        """True for an OctetString-based TextualConvention whose payload
+        violates the type's size constraint (DISPLAY-HINT would misrender it).
+        """
+        if not isinstance(resolved, OctetString):
+            return False
+        # only TextualConventions render via DISPLAY-HINT
+        if not getattr(resolved, "displayHint", None):
+            return False
+        subtype_spec = getattr(resolved, "subtypeSpec", None)
+        if not subtype_spec:
+            return False
+        try:
+            subtype_spec(resolved.asOctets())
+        except PyAsn1Error:
+            return True
+        except Exception:
+            return False
+        return False
 
     def _get_oid(self):
         oid = self._object_identity.get_mib_symbol()

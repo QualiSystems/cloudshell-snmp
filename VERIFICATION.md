@@ -31,3 +31,26 @@ Notes and gotchas surfaced during verification:
 - The timeout error contract preserved exactly as in 5.x: `walk`/`get_table` raise
   `errind.requestTimedOut` (what cloudshell-snmp-autoload catches); `get` raises
   `ReadSNMPException`, which `get_property` swallows into an empty `SnmpResponse`.
+
+## Parity-gate follow-up: malformed TextualConvention rendering (2026-09-06)
+
+The 143-device parity gate initially reported 140/143 byte-identical; the 3 diffs (rec067,
+rec068, rec114) were all one pattern - `entPhysicalMfgDate` (SNMPv2-TC `DateAndTime`,
+SIZE(8|11)) with malformed vendor payloads (16 ASCII `0` bytes on PaloAlto, `NA` on
+Force10). pysnmp 7's `ObjectType.resolve_with_mib` force-assigns the wire payload into the
+MIB type bypassing size constraints, so the DISPLAY-HINT rendered garbage
+(`12336-48-48,...` / `20033`) where pysnmp 4 left raw ASCII.
+
+Mitigation in `SnmpResponse.value`: when the resolved value is an OctetString-based
+TextualConvention (has a DISPLAY-HINT) whose raw octets violate the type's `subtypeSpec`,
+render the plain octets exactly as pysnmp 4 did (raw ASCII if printable, existing 0x/raw
+path otherwise). Well-formed values keep going through `prettyPrint` untouched.
+
+Proof:
+
+- Unit test `test_malformed_textual_convention_renders_raw`: `b"0"*16` ->
+  `'0000000000000000'`, `b"NA"` -> `'NA'`, well-formed 8-byte payload still renders
+  `'2024-1-2,3:4:5.6'` via the hint. Full suite: **73 passed**.
+- Parity re-check against the responder serving all 143 recordings on 127.0.0.1:1611:
+  `walk_device.py` output for **rec067, rec068, rec114 all byte-identical** to
+  `snmp-parity-harness/goldens/` -> gate now 143/143.
