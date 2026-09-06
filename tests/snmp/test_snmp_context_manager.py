@@ -115,14 +115,14 @@ class TestSnmpContextManager(TestCase):
         mib_mock = Mock(spec=JsonMib)
         mib_builder_mock.json_mib_parser.json_mibs = {"test_mib": mib_mock}
         transport_dispatcher_mock = Mock()
-        snmp_engine_mock.transportDispatcher = transport_dispatcher_mock
+        snmp_engine_mock.transport_dispatcher = transport_dispatcher_mock
 
         with SnmpContextManager(
             snmp_engine_mock, "test_id", "test_name", "test_logger"
         ):
             pass
 
-        transport_dispatcher_mock.closeDispatcher.assert_called_once()
+        transport_dispatcher_mock.close_dispatcher.assert_called_once()
 
     @patch("cloudshell.snmp.core.snmp_context_manager.SnmpService")
     def test_exit_destroys_json_mibs(self, snmp_service_mock):

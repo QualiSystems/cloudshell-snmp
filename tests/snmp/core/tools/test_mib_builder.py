@@ -31,7 +31,7 @@ class TestQualiMibBuilder(unittest.TestCase):
         result = mib_builder.load_mib_types(mib_name, mib_type)
         self.assertEqual(mib_builder.mibSymbols.get("ASN1", {}).get(mib_type), result)
 
-    def test_importSymbols(self):
+    def test_import_symbols(self):
         snmp_engine = QualiSnmpEngine(
             msg_pdu_dsp=QualiMsgAndPduDispatcher(), logger=Mock()
         )
@@ -39,7 +39,7 @@ class TestQualiMibBuilder(unittest.TestCase):
         mib_record = "sysDescr"
         oid = (1, 3, 6, 1, 2, 1, 1, 1)
         mib_builder = snmp_engine.mib_builder
-        result = mib_builder.importSymbols(mib_name, mib_record)
+        result = mib_builder.import_symbols(mib_name, mib_record)
         self.assertEqual(result[0].name, oid)
         self.assertEqual(result[0].label, mib_record)
 
@@ -61,10 +61,10 @@ class TestQualiMibBuilder(unittest.TestCase):
             "mibs",
         )
         path_to_add = QualiDirMibSource(path_to_mibs)
-        mib_sources = (path_to_add,) + mib_builder.getMibSources()
-        mib_builder.setMibSources(*mib_sources)
+        mib_sources = (path_to_add,) + mib_builder.get_mib_sources()
+        mib_builder.set_mib_sources(*mib_sources)
         path_to_add.preload(mib_builder)
-        mib_builder.loadModule(mib_name)
-        mib_builder.importSymbols(mib_name, mib_record)
+        mib_builder.load_module(mib_name)
+        mib_builder.import_symbols(mib_name, mib_record)
         self.assertTrue(mib_builder.mibSymbols.get(mib_name))
         self.assertTrue(mib_builder.mibSymbols.get(mib_name).get(mib_record))

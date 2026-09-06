@@ -57,8 +57,8 @@ class TestEnableDisableSnmpConfigurator(TestCase):
 
         # Assert
         assert isinstance(service, EnableDisableSnmpManager)
-        assert enable_disable_flow.enable_snmp.called_once_with(snmp_parameters)
-        assert enable_disable_flow.disable_snmp.called_once_with(snmp_parameters)
+        enable_disable_flow.enable_snmp.assert_called_once_with(snmp_parameters)
+        enable_disable_flow.disable_snmp.assert_called_once_with(snmp_parameters)
 
     def test_from_config(self):
         # Arrange

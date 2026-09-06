@@ -13,7 +13,7 @@ class TestSNMPService(TestCase):
         self.snmp_engine = QualiSnmpEngine(
             msg_pdu_dsp=QualiMsgAndPduDispatcher(), logger=Mock()
         )
-        self.snmp_engine.transportDispatcher = Mock()
+        self.snmp_engine.transport_dispatcher = Mock()
         context_id = Mock()
         context_name = Mock()
         logger = Mock()
@@ -28,6 +28,7 @@ class TestSNMPService(TestCase):
         )
 
     def test_get(self, response_service):
+        response_service.return_value.cb_ctx = {}
         expected_response = Mock()
         response_service.return_value.result = [expected_response]
         oid = create_autospec(SnmpMibObject)
@@ -35,6 +36,7 @@ class TestSNMPService(TestCase):
         assert response, expected_response
 
     def test_set(self, response_service):
+        response_service.return_value.cb_ctx = {}
         expected_response = Mock()
         response_service.return_value.result = [expected_response]
         self.snmp_service._is_snmp_read_only = False
@@ -43,6 +45,7 @@ class TestSNMPService(TestCase):
         assert response, expected_response
 
     def test_get_property(self, response_service):
+        response_service.return_value.cb_ctx = {}
         expected_response = Mock()
         response_service.return_value.result = [expected_response]
         oid = create_autospec(SnmpMibObject)
@@ -50,6 +53,7 @@ class TestSNMPService(TestCase):
         assert response, expected_response
 
     def test_get_property_bad_response(self, response_service):
+        response_service.return_value.cb_ctx = {}
         expected_response = None
         response_service.return_value.result = [expected_response]
         oid = create_autospec(SnmpMibObject)
@@ -60,6 +64,7 @@ class TestSNMPService(TestCase):
     def test_walk(self, univ, response_service):
         univ.ObjectIdentifier.return_value = 2
         expected_response = [Mock(), Mock(), Mock()]
+        response_service.return_value.cb_ctx = {}
         response_service.return_value.result = expected_response
         oid = create_autospec(SnmpMibObject)
         response = self.snmp_service.walk(oid)
@@ -71,6 +76,7 @@ class TestSNMPService(TestCase):
         univ.ObjectIdentifier.return_value = 2
         expected_response = [Mock(), Mock(), Mock()]
         mib_table.create_from_list.return_value = expected_response
+        response_service.return_value.cb_ctx = {}
         response_service.return_value.result = expected_response
         oid = create_autospec(SnmpMibObject)
         response = self.snmp_service.get_multiple_columns([oid])
