@@ -196,7 +196,7 @@ class JsonMib:
         self._update_index_names(initialized_obj, snmp_data)
         if snmp_data.mib_node_augmentation:
             self._set_augmentation(snmp_data.mib_node_augmentation, initialized_obj)
-        self._mib_builder.exportSymbols(mib_name, **data)
+        self._mib_builder.export_symbols(mib_name, **data)
         parent_oid = snmp_data.oid[: snmp_data.oid.rfind(".")]
         parent_mib = self._mib_parser.guess_mib_by_oid(parent_oid)
         if parent_mib:
@@ -208,7 +208,7 @@ class JsonMib:
                     parent_oid_obj = parent_mib_obj.mib_symbols.get(parent_oid)
                     if parent_oid_obj:
                         parent_oid = parent_oid_obj.mib_record
-                        self._mib_builder.importSymbols(parent_mib, parent_oid, **{})
+                        self._mib_builder.import_symbols(parent_mib, parent_oid, **{})
         if snmp_data.mib_node_type == "table":
             self._load_child_nodes(snmp_data.mib_record)
 
@@ -247,7 +247,7 @@ class JsonMib:
         augm_object = node_augmentation.get("object")
         augm_mib = node_augmentation.get("module")
         augm_target = node_augmentation.get("name")
-        augm_obj = self._mib_builder.importSymbols(augm_mib, augm_object)
+        augm_obj = self._mib_builder.import_symbols(augm_mib, augm_object)
         if not augm_obj:
             raise TranslateSNMPException("Augmentation object not found")
         augm_obj[0].registerAugmentions((augm_mib, augm_target))

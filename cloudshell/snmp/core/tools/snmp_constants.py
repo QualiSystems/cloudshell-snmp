@@ -1,4 +1,4 @@
-from pysnmp.hlapi import (
+from pysnmp.hlapi.v3arch.asyncio import (
     usm3DESEDEPrivProtocol,
     usmAesCfb128Protocol,
     usmAesCfb192Protocol,

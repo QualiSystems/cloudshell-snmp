@@ -12,8 +12,10 @@ class SnmpResponse:
     def __init__(self, oid, value, snmp_engine, logger):
         self._raw_oid = oid
         self._engine = snmp_engine
-        self._snmp_mib_translator = CommandGeneratorVarBinds.getMibViewController(
-            snmp_engine
+        # pysnmp 7: get_mib_view_controller is a staticmethod over the raw
+        # engine cache dict (QualiSnmpEngine plants QualiViewController there)
+        self._snmp_mib_translator = CommandGeneratorVarBinds.get_mib_view_controller(
+            snmp_engine.cache
         )
         self._logger = logger
         self._mib_id = None
@@ -27,14 +29,14 @@ class SnmpResponse:
 
     @property
     def _object_identity(self):
-        if not self._object_id.isFullyResolved():
-            self._object_id.resolveWithMib(self._snmp_mib_translator)
+        if not self._object_id.is_fully_resolved():
+            self._object_id.resolve_with_mib(self._snmp_mib_translator)
         return self._object_id
 
     @property
     def object_type(self):
-        if not self._object_type.isFullyResolved():
-            self._object_type.resolveWithMib(self._snmp_mib_translator)
+        if not self._object_type.is_fully_resolved():
+            self._object_type.resolve_with_mib(self._snmp_mib_translator)
         return self._object_type
 
     @property
@@ -43,7 +45,7 @@ class SnmpResponse:
 
     @property
     def oid(self):
-        return self._object_identity.getOid()
+        return self._object_identity.get_oid()
 
     @property
     def mib_name(self):
@@ -89,7 +91,7 @@ class SnmpResponse:
             raise TranslateSNMPException("Error parsing snmp response")
 
     def _get_oid(self):
-        oid = self._object_identity.getMibSymbol()
+        oid = self._object_identity.get_mib_symbol()
         self._mib_name = oid[0]
         self._mib_id = oid[1]
         if isinstance(oid[-1], tuple):

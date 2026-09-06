@@ -44,7 +44,7 @@ class Snmp:
         snmp_engine = QualiSnmpEngine(
             msg_pdu_dsp=QualiMsgAndPduDispatcher(), logger=logger
         )
-        config.addTargetParams(
+        config.add_target_parameters(
             snmp_engine,
             "pms",
             pysnmp_params.user,
